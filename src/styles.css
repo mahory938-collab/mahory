@@ -1,0 +1,304 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * POS Design System — "Honey Spice"
+ * Primary: canela (#A1755D). Full identity built from a warm café/caramelo/miel
+ * palette. Every color below is derived from the 7 brand tones in --palette-*.
+ * Never hardcode colors in components — consume these semantic tokens instead.
+ */
+
+@theme inline {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+
+  /* Raw brand palette — usable directly (bg-marfil, text-cafe-profundo, etc.) */
+  --color-marfil: var(--palette-marfil);
+  --color-crema: var(--palette-crema);
+  --color-miel: var(--palette-miel);
+  --color-caramelo: var(--palette-caramelo);
+  --color-cafe-rosado: var(--palette-cafe-rosado);
+  --color-canela: var(--palette-canela);
+  --color-cafe-profundo: var(--palette-cafe-profundo);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-foreground: var(--surface-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-glow: var(--primary-glow);
+  --color-primary-soft: var(--primary-soft);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --shadow-soft: 0 1px 2px oklch(0.3 0.03 50 / 0.06), 0 8px 24px -12px oklch(0.3 0.03 50 / 0.16);
+  --shadow-card: 0 1px 3px oklch(0.3 0.03 50 / 0.08), 0 12px 32px -16px oklch(0.3 0.03 50 / 0.2);
+  --shadow-elevated: 0 2px 6px oklch(0.3 0.03 50 / 0.1), 0 24px 48px -20px oklch(0.3 0.03 50 / 0.28);
+  --shadow-glow: 0 8px 32px -8px var(--primary-glow);
+}
+
+:root {
+  --radius: 0.875rem;
+
+  /* Brand palette — the single source of truth for every color below */
+  --palette-marfil: #ede0d8; /* Marfil rosado */
+  --palette-crema: #e7c3a7; /* Crema cálido */
+  --palette-miel: #dbaa84; /* Beige miel */
+  --palette-caramelo: #d09d78; /* Caramelo suave */
+  --palette-cafe-rosado: #b3846c; /* Café rosado */
+  --palette-canela: #a1755d; /* Canela / taupe */
+  --palette-cafe-profundo: #705241; /* Café profundo */
+
+  --background: var(--palette-marfil);
+  --foreground: var(--palette-cafe-profundo);
+
+  --surface: color-mix(in oklab, var(--palette-crema) 35%, var(--palette-marfil));
+  --surface-foreground: var(--palette-cafe-profundo);
+
+  --card: color-mix(in oklab, var(--palette-marfil) 25%, white);
+  --card-foreground: var(--palette-cafe-profundo);
+
+  --popover: var(--card);
+  --popover-foreground: var(--palette-cafe-profundo);
+
+  --primary: var(--palette-canela);
+  --primary-foreground: oklch(1 0 0);
+  --primary-hover: var(--palette-cafe-profundo);
+  --primary-glow: color-mix(in oklab, var(--palette-canela) 45%, transparent);
+  --primary-soft: color-mix(in oklab, var(--palette-crema) 55%, var(--palette-marfil));
+
+  --secondary: var(--palette-caramelo);
+  --secondary-foreground: var(--palette-cafe-profundo);
+
+  --muted: color-mix(in oklab, var(--palette-miel) 30%, var(--palette-marfil));
+  --muted-foreground: var(--palette-canela);
+
+  --accent: color-mix(in oklab, var(--palette-crema) 55%, white);
+  --accent-foreground: var(--palette-cafe-profundo);
+
+  /* Semantic exceptions (rule 17): recognizable status colors, used sparingly */
+  --destructive: oklch(0.577 0.221 27.3);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  --success: oklch(0.62 0.14 155);
+  --success-foreground: oklch(0.99 0 0);
+  --warning: oklch(0.77 0.15 75);
+  --warning-foreground: oklch(0.26 0.03 75);
+  --info: oklch(0.6 0.12 240);
+  --info-foreground: oklch(0.99 0 0);
+
+  --border: var(--palette-crema);
+  --input: var(--palette-miel);
+  --ring: color-mix(in oklab, var(--palette-caramelo) 55%, transparent);
+
+  --chart-1: var(--palette-cafe-profundo);
+  --chart-2: var(--palette-canela);
+  --chart-3: var(--palette-cafe-rosado);
+  --chart-4: var(--palette-caramelo);
+  --chart-5: var(--palette-miel);
+  --chart-6: var(--palette-crema);
+
+  --sidebar: var(--palette-cafe-profundo);
+  --sidebar-foreground: var(--palette-marfil);
+  --sidebar-primary: var(--palette-caramelo);
+  --sidebar-primary-foreground: var(--palette-cafe-profundo);
+  --sidebar-accent: var(--palette-caramelo);
+  --sidebar-accent-foreground: var(--palette-cafe-profundo);
+  --sidebar-border: color-mix(in oklab, var(--palette-cafe-profundo) 75%, white);
+  --sidebar-ring: var(--palette-caramelo);
+}
+
+.dark {
+  /* Same 7 brand tones — only how they're assigned to surfaces changes */
+  --palette-marfil: #ede0d8;
+  --palette-crema: #e7c3a7;
+  --palette-miel: #dbaa84;
+  --palette-caramelo: #d09d78;
+  --palette-cafe-rosado: #b3846c;
+  --palette-canela: #a1755d;
+  --palette-cafe-profundo: #705241;
+
+  --background: color-mix(in oklab, var(--palette-cafe-profundo) 68%, black);
+  --foreground: var(--palette-marfil);
+
+  --surface: color-mix(in oklab, var(--palette-cafe-profundo) 76%, black);
+  --surface-foreground: var(--palette-marfil);
+
+  --card: color-mix(in oklab, var(--palette-cafe-profundo) 84%, black);
+  --card-foreground: var(--palette-marfil);
+
+  --popover: var(--card);
+  --popover-foreground: var(--palette-marfil);
+
+  --primary: var(--palette-caramelo);
+  --primary-foreground: var(--palette-cafe-profundo);
+  --primary-hover: color-mix(in oklab, var(--palette-caramelo) 80%, white);
+  --primary-glow: color-mix(in oklab, var(--palette-caramelo) 45%, transparent);
+  --primary-soft: color-mix(in oklab, var(--palette-cafe-profundo) 55%, var(--palette-caramelo));
+
+  --secondary: color-mix(in oklab, var(--palette-cafe-rosado) 55%, var(--palette-cafe-profundo));
+  --secondary-foreground: var(--palette-marfil);
+
+  --muted: color-mix(in oklab, var(--palette-cafe-profundo) 76%, black);
+  --muted-foreground: color-mix(in oklab, var(--palette-crema) 65%, var(--palette-marfil));
+
+  --accent: color-mix(in oklab, var(--palette-canela) 45%, var(--palette-cafe-profundo));
+  --accent-foreground: var(--palette-marfil);
+
+  --destructive: oklch(0.65 0.19 25);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  --success: oklch(0.7 0.14 155);
+  --success-foreground: oklch(0.18 0.02 155);
+  --warning: oklch(0.8 0.15 75);
+  --warning-foreground: oklch(0.22 0.03 75);
+  --info: oklch(0.68 0.12 240);
+  --info-foreground: oklch(0.18 0.02 240);
+
+  --border: color-mix(in oklab, var(--palette-crema) 22%, transparent);
+  --input: color-mix(in oklab, var(--palette-miel) 28%, transparent);
+  --ring: var(--palette-caramelo);
+
+  --chart-1: var(--palette-crema);
+  --chart-2: var(--palette-miel);
+  --chart-3: var(--palette-caramelo);
+  --chart-4: var(--palette-cafe-rosado);
+  --chart-5: var(--palette-canela);
+  --chart-6: var(--palette-marfil);
+
+  --sidebar: color-mix(in oklab, var(--palette-cafe-profundo) 82%, black);
+  --sidebar-foreground: var(--palette-marfil);
+  --sidebar-primary: var(--palette-caramelo);
+  --sidebar-primary-foreground: var(--palette-cafe-profundo);
+  --sidebar-accent: var(--palette-caramelo);
+  --sidebar-accent-foreground: var(--palette-cafe-profundo);
+  --sidebar-border: color-mix(in oklab, var(--palette-crema) 14%, transparent);
+  --sidebar-ring: var(--palette-caramelo);
+}
+
+@theme inline {
+  --background-image-gradient-brand: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    color-mix(in oklab, var(--primary) 55%, var(--palette-cafe-profundo)) 100%
+  );
+  --background-image-gradient-surface: linear-gradient(
+    180deg,
+    var(--card) 0%,
+    color-mix(in oklab, var(--card) 92%, var(--primary)) 100%
+  );
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  /* Touch-screen friendly: no text selection drag on shell chrome */
+  button,
+  [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@utility card-elevated {
+  background-color: var(--color-card);
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+}
+
+@utility text-gradient-brand {
+  background-image: var(--background-image-gradient-brand);
+  background-clip: text;
+  color: transparent;
+}
+
+@utility scrollbar-slim {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@utility animate-pop-in {
+  animation: pop-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
