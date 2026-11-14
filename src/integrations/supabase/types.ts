@@ -964,6 +964,7 @@ export type Database = {
           disconnected_at: string | null
           id: string
           last_seen_at: string
+          mode: string
           name: string
           owner_id: string
           paired_at: string
@@ -975,6 +976,7 @@ export type Database = {
           disconnected_at?: string | null
           id?: string
           last_seen_at?: string
+          mode?: string
           name: string
           owner_id: string
           paired_at?: string
@@ -986,6 +988,7 @@ export type Database = {
           disconnected_at?: string | null
           id?: string
           last_seen_at?: string
+          mode?: string
           name?: string
           owner_id?: string
           paired_at?: string

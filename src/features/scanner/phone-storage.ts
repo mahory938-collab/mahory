@@ -41,3 +41,22 @@ export function clearDevice() {
     // almacenamiento no disponible
   }
 }
+
+const MODE_KEY = "mahory-scanner-mode";
+
+/** Último modo usado en este celular ("ventas" por defecto). */
+export function loadMode(): "ventas" | "consulta" {
+  try {
+    return localStorage.getItem(MODE_KEY) === "consulta" ? "consulta" : "ventas";
+  } catch {
+    return "ventas";
+  }
+}
+
+export function saveMode(mode: "ventas" | "consulta") {
+  try {
+    localStorage.setItem(MODE_KEY, mode);
+  } catch {
+    // almacenamiento no disponible
+  }
+}

@@ -208,7 +208,9 @@ export function ScannerPairingDialog({
                   />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{device.name}</p>
-                    <p className="text-xs text-muted-foreground">{lastSeenLabel(device)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {lastSeenLabel(device)} · {device.mode === "consulta" ? "consulta de precios" : "modo ventas"}
+                    </p>
                   </div>
                   <Badge variant={online ? "secondary" : "outline"} className="rounded-full">
                     {online ? "Conectado" : "Sin señal"}

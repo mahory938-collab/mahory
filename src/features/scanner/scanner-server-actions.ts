@@ -29,6 +29,28 @@ export type ScanResult = {
   product: ScannedProduct | null;
 };
 
+export type ScannerMode = "ventas" | "consulta";
+
+export type StockStatus = "disponible" | "pocas" | "agotado";
+
+/** Lo único que ve el empleado al consultar un precio: sin costos, márgenes ni identificadores internos. */
+export type PriceLookupResult = {
+  found: boolean;
+  product: {
+    name: string;
+    price: number;
+    stock: number;
+    status: StockStatus;
+    categoryName: string | null;
+    imageUrl: string | null;
+  } | null;
+};
+
+/** Si la columna "mode" todavía no existe en la base, todo se comporta como "ventas". */
+function deviceMode(device: { mode?: string | null }): ScannerMode {
+  return device.mode === "consulta" ? "consulta" : "ventas";
+}
+
 async function getAdmin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin;
@@ -329,7 +351,25 @@ export const pingScannerDevice = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { admin, device } = await requireDevice(data.deviceId, data.deviceSecret);
     await admin.from("scanner_devices").update({ last_seen_at: new Date().toISOString() }).eq("id", device.id);
-    return { ok: true };
+    return { ok: true, mode: deviceMode(device) };
+  });
+
+/** Cambia el modo del celular. Queda guardado en el servidor, que es quien lo hace cumplir. */
+export const setScannerDeviceMode = createServerFn({ method: "POST" })
+  .validator((data: unknown) => data as { deviceId: string; deviceSecret: string; mode: ScannerMode })
+  .handler(async ({ data }) => {
+    const { admin, device } = await requireDevice(data.deviceId, data.deviceSecret);
+    if (data.mode !== "ventas" && data.mode !== "consulta") throw new Error("MODO_INVALIDO");
+
+    const { error } = await admin
+      .from("scanner_devices")
+      .update({ mode: data.mode, last_seen_at: new Date().toISOString() })
+      .eq("id", device.id);
+    if (error) {
+      // La columna "mode" no existe: falta correr el SQL de los modos.
+      throw new Error(/mode|schema cache|column/i.test(error.message) ? "MODOS_NO_ACTIVADOS" : "No se pudo cambiar de modo.");
+    }
+    return { ok: true, mode: data.mode };
   });
 
 /** El celular se desconecta por su cuenta. */
@@ -358,6 +398,8 @@ export const submitDeviceScan = createServerFn({ method: "POST" })
   .validator((data: unknown) => data as { deviceId: string; deviceSecret: string; eventId: string; barcode: string })
   .handler(async ({ data }): Promise<ScanResult> => {
     const { admin, device, session } = await requireDevice(data.deviceId, data.deviceSecret);
+    // Un celular en "consulta de precios" NUNCA puede mandar productos al carrito del POS.
+    if (deviceMode(device) !== "ventas") throw new Error("MODO_CONSULTA");
 
     if (!UUID_RE.test(data.eventId ?? "")) throw new Error("EVENTO_INVALIDO");
     const barcode = String(data.barcode ?? "").trim();
@@ -509,7 +551,8 @@ export const registerDeviceProduct = createServerFn({ method: "POST" })
     }
 
     const eventId = UUID_RE.test(data.eventId ?? "") ? data.eventId : crypto.randomUUID();
-    const addToSale = Boolean(data.addToSale);
+    // En "consulta de precios" el producto se crea pero jamás se manda al carrito.
+    const addToSale = Boolean(data.addToSale) && deviceMode(device) === "ventas";
     await admin
       .from("scan_events")
       .insert({
@@ -565,4 +608,46 @@ export const uploadDeviceProductImage = createServerFn({ method: "POST" })
     if (error) throw new Error("No se pudo subir la foto.");
 
     return { url: admin.storage.from("product-images").getPublicUrl(path).data.publicUrl };
+  });
+
+/**
+ * Consulta de precios: SOLO LEE. No crea eventos, no toca el carrito del POS, no genera
+ * ventas ni movimientos de inventario y no cambia ninguna existencia.
+ */
+export const lookupDeviceProduct = createServerFn({ method: "POST" })
+  .validator((data: unknown) => data as { deviceId: string; deviceSecret: string; barcode: string })
+  .handler(async ({ data }): Promise<PriceLookupResult> => {
+    const { admin, device, session } = await requireDevice(data.deviceId, data.deviceSecret);
+    if (deviceMode(device) !== "consulta") throw new Error("MODO_VENTAS");
+
+    const barcode = String(data.barcode ?? "").trim();
+    if (!BARCODE_RE.test(barcode)) throw new Error("CODIGO_INVALIDO");
+
+    let query = admin
+      .from("products")
+      .select("name, price, stock, min_stock, image_url, categories(name)")
+      .in("barcode", barcodeVariants(barcode))
+      .eq("status", "active")
+      .limit(1);
+    if (session.store_id) query = query.eq("store_id", session.store_id);
+
+    const { data: rows } = await query;
+    const row = rows?.[0];
+    if (!row) return { found: false, product: null };
+
+    const stock = Number(row.stock);
+    const minStock = Number(row.min_stock);
+    const category = row.categories as { name: string } | null;
+
+    return {
+      found: true,
+      product: {
+        name: row.name,
+        price: Number(row.price),
+        stock,
+        status: stock <= 0 ? "agotado" : stock <= minStock ? "pocas" : "disponible",
+        categoryName: category?.name ?? null,
+        imageUrl: row.image_url,
+      },
+    };
   });

@@ -676,3 +676,17 @@ BEGIN
     ALTER PUBLICATION supabase_realtime ADD TABLE public.scanner_devices;
   END IF;
 END $$;
+
+-- 12) MODOS DEL ESCÁNER (misma sección que migrations/20261114190000_escaner_modos.sql)
+ALTER TABLE public.scanner_devices
+  ADD COLUMN IF NOT EXISTS mode text NOT NULL DEFAULT 'ventas';
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'scanner_devices_mode_check'
+  ) THEN
+    ALTER TABLE public.scanner_devices
+      ADD CONSTRAINT scanner_devices_mode_check CHECK (mode IN ('ventas', 'consulta'));
+  END IF;
+END $$;
