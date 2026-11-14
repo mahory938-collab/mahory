@@ -845,6 +845,244 @@ export type Database = {
           },
         ]
       }
+      expenses: {
+        Row: {
+          amount: number
+          category: string
+          concept: string
+          created_at: string
+          created_by: string | null
+          expense_date: string
+          id: string
+          notes: string | null
+          payment_method: Database["public"]["Enums"]["payment_method"] | null
+          store_id: string | null
+        }
+        Insert: {
+          amount: number
+          category?: string
+          concept: string
+          created_at?: string
+          created_by?: string | null
+          expense_date?: string
+          id?: string
+          notes?: string | null
+          payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          store_id?: string | null
+        }
+        Update: {
+          amount?: number
+          category?: string
+          concept?: string
+          created_at?: string
+          created_by?: string | null
+          expense_date?: string
+          id?: string
+          notes?: string | null
+          payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          store_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scan_events: {
+        Row: {
+          barcode: string
+          consumed_at: string | null
+          created_at: string
+          device_id: string
+          event_id: string
+          found: boolean
+          image_url: string | null
+          owner_id: string
+          product_id: string | null
+          product_name: string | null
+          session_id: string
+          unit_price: number | null
+        }
+        Insert: {
+          barcode: string
+          consumed_at?: string | null
+          created_at?: string
+          device_id: string
+          event_id: string
+          found?: boolean
+          image_url?: string | null
+          owner_id: string
+          product_id?: string | null
+          product_name?: string | null
+          session_id: string
+          unit_price?: number | null
+        }
+        Update: {
+          barcode?: string
+          consumed_at?: string | null
+          created_at?: string
+          device_id?: string
+          event_id?: string
+          found?: boolean
+          image_url?: string | null
+          owner_id?: string
+          product_id?: string | null
+          product_name?: string | null
+          session_id?: string
+          unit_price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scan_events_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "scanner_devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scan_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scan_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "scanner_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scanner_devices: {
+        Row: {
+          disconnected_at: string | null
+          id: string
+          last_seen_at: string
+          name: string
+          owner_id: string
+          paired_at: string
+          secret_hash: string
+          session_id: string
+          store_id: string | null
+        }
+        Insert: {
+          disconnected_at?: string | null
+          id?: string
+          last_seen_at?: string
+          name: string
+          owner_id: string
+          paired_at?: string
+          secret_hash: string
+          session_id: string
+          store_id?: string | null
+        }
+        Update: {
+          disconnected_at?: string | null
+          id?: string
+          last_seen_at?: string
+          name?: string
+          owner_id?: string
+          paired_at?: string
+          secret_hash?: string
+          session_id?: string
+          store_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scanner_devices_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "scanner_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scanner_devices_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scanner_pairings: {
+        Row: {
+          code_hash: string
+          created_at: string
+          expires_at: string
+          id: string
+          session_id: string
+          token_hash: string
+          used_at: string | null
+        }
+        Insert: {
+          code_hash: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          session_id: string
+          token_hash: string
+          used_at?: string | null
+        }
+        Update: {
+          code_hash?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          session_id?: string
+          token_hash?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scanner_pairings_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "scanner_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scanner_sessions: {
+        Row: {
+          closed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          owner_id: string
+          store_id: string | null
+        }
+        Insert: {
+          closed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          owner_id: string
+          store_id?: string | null
+        }
+        Update: {
+          closed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          owner_id?: string
+          store_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scanner_sessions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stores: {
         Row: {
           address: string | null
@@ -1007,6 +1245,8 @@ export type Database = {
         | "transferencia"
         | "credito"
         | "otro"
+        | "nequi"
+        | "daviplata"
       product_status: "active" | "inactive"
       purchase_status: "borrador" | "recibida" | "anulada"
       sale_status: "completada" | "anulada" | "pendiente" | "credito"
@@ -1156,6 +1396,8 @@ export const Constants = {
         "transferencia",
         "credito",
         "otro",
+        "nequi",
+        "daviplata",
       ],
       product_status: ["active", "inactive"],
       purchase_status: ["borrador", "recibida", "anulada"],

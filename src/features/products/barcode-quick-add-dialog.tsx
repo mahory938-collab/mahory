@@ -31,9 +31,12 @@ const SUGGESTION_LIMIT = 30;
 export function BarcodeQuickAddDialog({
   open,
   onOpenChange,
+  initialBarcode,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Código ya leído (p. ej. escaneado con el celular y no encontrado). */
+  initialBarcode?: string | undefined;
 }) {
   const [barcode, setBarcode] = useState("");
   const [name, setName] = useState("");
@@ -59,8 +62,12 @@ export function BarcodeQuickAddDialog({
   useEffect(() => {
     if (!open) return;
     resetForm();
+    if (initialBarcode) {
+      setBarcode(initialBarcode);
+      setTimeout(() => document.getElementById("quick-add-name")?.focus(), 150);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, initialBarcode]);
 
   useEffect(() => {
     if (existing) setNewStock(String(existing.stock));

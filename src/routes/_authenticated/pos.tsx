@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   ChevronDown,
   Clock,
+  Smartphone,
   ImageOff,
   Layers,
   Minus,
@@ -66,7 +67,16 @@ import type { CustomerSelection } from "@/features/pos/customer-picker";
 import { CustomerPicker } from "@/features/pos/customer-picker";
 import { useCart } from "@/features/pos/use-cart";
 import type { PosProduct } from "@/features/pos/use-products";
-import { findProductByCode, usePosCategories, usePosProducts } from "@/features/pos/use-products";
+import {
+  findProductByCode,
+  findProductById,
+  usePosCategories,
+  usePosProducts,
+} from "@/features/pos/use-products";
+import { BarcodeQuickAddDialog } from "@/features/products/barcode-quick-add-dialog";
+import { ScannerPairingDialog } from "@/features/scanner/scanner-pairing-dialog";
+import { useScannerSession, type ScanEventRow } from "@/features/scanner/use-scanner-session";
+import { playBeep } from "@/lib/beep";
 import type { Promotion } from "@/features/promotions/use-promotions";
 import { findBestPromotion, usePromotions } from "@/features/promotions/use-promotions";
 import { printReceipt } from "@/features/sales/print-receipt";
@@ -137,6 +147,8 @@ function PosPage() {
   const [completedSale, setCompletedSale] = useState<SaleDetail | null>(null);
   const [heldListOpen, setHeldListOpen] = useState(false);
   const [expandedGroupKey, setExpandedGroupKey] = useState<string | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [unknownBarcode, setUnknownBarcode] = useState<string | null>(null);
 
   const { data: categories } = usePosCategories();
   const { data: products, isLoading } = usePosProducts(search, categoryId);
@@ -154,6 +166,41 @@ function PosPage() {
       promo ? { percent: promo.percent, label: promo.name } : undefined,
     );
   };
+
+  // Escaneos que llegan del celular: se comportan igual que agregar el producto a mano.
+  const handlePhoneScan = async (event: ScanEventRow, deviceName: string) => {
+    if (!event.found || !event.product_id) {
+      playBeep("error");
+      toast.error("Producto no encontrado", {
+        description: `Código ${event.barcode} · escaneado con ${deviceName}`,
+        duration: 15000,
+        action: { label: "Registrar producto", onClick: () => setUnknownBarcode(event.barcode) },
+      });
+      return;
+    }
+
+    try {
+      const product = await findProductById(event.product_id);
+      if (!product) {
+        playBeep("error");
+        toast.error("Ese producto ya no está disponible", { description: event.product_name ?? event.barcode });
+        return;
+      }
+      if (product.stock <= 0) {
+        playBeep("error");
+        toast.error(`"${product.name}" no tiene stock disponible`, { description: `Escaneado con ${deviceName}` });
+        return;
+      }
+      addToCart(product);
+      playBeep("ok");
+      toast.success(`${product.name} agregado`, { description: `Escaneado con ${deviceName}`, duration: 2500 });
+    } catch {
+      playBeep("error");
+      toast.error("No se pudo agregar el producto escaneado. Revise la conexión.");
+    }
+  };
+
+  const scanner = useScannerSession(user?.id ?? null, handlePhoneScan);
 
   // Same product name, different code (e.g. sizes/colors) — group so the
   // grid shows one card per name instead of one scattered card per variant.
@@ -572,6 +619,20 @@ function PosPage() {
               </Button>
             )}
             <Button
+              variant={scanner.activeCount > 0 ? "secondary" : "outline"}
+              className="h-12 shrink-0 gap-2 rounded-xl"
+              onClick={() => setScannerOpen(true)}
+              title="Usar el celular como lector de códigos"
+            >
+              <Smartphone className="size-4" />
+              <span className="hidden sm:inline">Conectar celular</span>
+              {scanner.activeCount > 0 && (
+                <Badge className="rounded-full bg-success px-1.5 text-success-foreground">
+                  {scanner.activeCount}
+                </Badge>
+              )}
+            </Button>
+            <Button
               variant="outline"
               className="h-12 shrink-0 gap-2 rounded-xl"
               onClick={() => setHeldListOpen(true)}
@@ -927,6 +988,24 @@ function PosPage() {
           </div>
         )}
       </div>
+
+      <ScannerPairingDialog
+        open={scannerOpen}
+        onOpenChange={setScannerOpen}
+        devices={scanner.devices}
+        onChanged={() => {
+          void scanner.refreshSession();
+          void scanner.refreshDevices();
+        }}
+      />
+
+      <BarcodeQuickAddDialog
+        open={unknownBarcode !== null}
+        onOpenChange={(open) => {
+          if (!open) setUnknownBarcode(null);
+        }}
+        initialBarcode={unknownBarcode ?? undefined}
+      />
 
       {/* Payment / confirmation dialog */}
       <Dialog

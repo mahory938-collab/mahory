@@ -83,3 +83,22 @@ export async function findProductByCode(code: string): Promise<PosProduct | null
     stock: Number(data.stock),
   } as PosProduct;
 }
+
+/** Producto activo por id (lo usa el escáner de celular, que ya sabe cuál es). */
+export async function findProductById(id: string): Promise<PosProduct | null> {
+  const { data, error } = await supabase
+    .from("products")
+    .select("id, name, barcode, sku, price, cost, tax_rate, stock, image_url, category_id")
+    .eq("id", id)
+    .eq("status", "active")
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  return {
+    ...data,
+    price: Number(data.price),
+    cost: Number(data.cost),
+    tax_rate: Number(data.tax_rate),
+    stock: Number(data.stock),
+  } as PosProduct;
+}

@@ -1,10 +1,10 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useEffect, useState } from "react";
-import { Loader2, LockKeyhole, Mail } from "lucide-react";
+import { Loader2, LockKeyhole, Mail, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -247,6 +247,19 @@ function AuthPage() {
               </Button>
             </form>
           )}
+
+          <div className="mt-8 border-t pt-6">
+            <Button asChild variant="outline" className="h-12 w-full gap-2 rounded-xl text-base">
+              <Link to="/escaner" search={{}}>
+                <Smartphone className="size-5" />
+                Conectar a una tienda
+              </Link>
+            </Button>
+            <p className="mt-2 text-center text-xs text-muted-foreground">
+              ¿Va a usar este celular como lector de códigos de barras? Conéctelo con el código del
+              computador, sin iniciar sesión.
+            </p>
+          </div>
         </div>
       </div>
     </div>
