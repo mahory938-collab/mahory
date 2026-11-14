@@ -167,13 +167,13 @@
   --palette-canela: #8157b8;
   --palette-cafe-profundo: #2a1b3d;
 
-  --background: color-mix(in oklab, var(--palette-cafe-profundo) 40%, black);
+  --background: color-mix(in oklab, var(--palette-cafe-profundo) 94%, var(--palette-canela));
   --foreground: var(--palette-marfil);
 
-  --surface: color-mix(in oklab, var(--palette-cafe-profundo) 52%, black);
+  --surface: color-mix(in oklab, var(--palette-cafe-profundo) 88%, var(--palette-canela));
   --surface-foreground: var(--palette-marfil);
 
-  --card: color-mix(in oklab, var(--palette-cafe-profundo) 62%, black);
+  --card: color-mix(in oklab, var(--palette-cafe-profundo) 82%, var(--palette-canela));
   --card-foreground: var(--palette-marfil);
 
   --popover: var(--card);
@@ -188,7 +188,7 @@
   --secondary: color-mix(in oklab, var(--palette-cafe-rosado) 55%, var(--palette-cafe-profundo));
   --secondary-foreground: var(--palette-marfil);
 
-  --muted: color-mix(in oklab, var(--palette-cafe-profundo) 52%, black);
+  --muted: color-mix(in oklab, var(--palette-cafe-profundo) 88%, var(--palette-canela));
   --muted-foreground: color-mix(in oklab, var(--palette-crema) 65%, var(--palette-marfil));
 
   --accent: color-mix(in oklab, var(--palette-canela) 45%, var(--palette-cafe-profundo));
@@ -215,7 +215,7 @@
   --chart-5: var(--palette-canela);
   --chart-6: var(--palette-marfil);
 
-  --sidebar: color-mix(in oklab, var(--palette-cafe-profundo) 34%, black);
+  --sidebar: color-mix(in oklab, var(--palette-cafe-profundo) 88%, black);
   --sidebar-foreground: var(--palette-marfil);
   --sidebar-primary: var(--palette-caramelo);
   --sidebar-primary-foreground: var(--palette-cafe-profundo);
