@@ -1,9 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   ArrowLeftRight,
   BarChart3,
   BookOpen,
   Boxes,
+  ChevronDown,
   LayoutDashboard,
   Layers,
   Package,
@@ -23,7 +25,6 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -41,30 +42,26 @@ type NavItem = {
   permission: Permission;
 };
 
-const OPERATION: NavItem[] = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, permission: "dashboard.view" },
-  { title: "Punto de venta", url: "/pos", icon: ShoppingCart, permission: "pos.use" },
+// Lo que se usa todos los días, siempre a la vista.
+const MAIN: NavItem[] = [
+  { title: "Inicio", url: "/dashboard", icon: LayoutDashboard, permission: "dashboard.view" },
+  { title: "Vender", url: "/pos", icon: ShoppingCart, permission: "pos.use" },
   { title: "Ventas", url: "/ventas", icon: ArrowLeftRight, permission: "pos.use" },
+  { title: "Productos", url: "/productos", icon: Package, permission: "products.view" },
+  { title: "Inventario", url: "/inventario", icon: Boxes, permission: "inventory.view" },
   { title: "Caja", url: "/caja", icon: Wallet, permission: "cash.use" },
 ];
 
-const CATALOG: NavItem[] = [
-  { title: "Productos", url: "/productos", icon: Package, permission: "products.view" },
+// Lo demás queda guardado en "Más opciones" para no abrumar.
+const MORE: NavItem[] = [
+  { title: "Clientes", url: "/clientes", icon: Users, permission: "customers.view" },
+  { title: "Compras", url: "/compras", icon: Truck, permission: "purchases.view" },
+  { title: "Proveedores", url: "/proveedores", icon: Store, permission: "suppliers.view" },
   { title: "Categorías", url: "/categorias", icon: Layers, permission: "categories.manage" },
   { title: "Promociones", url: "/promociones", icon: Tag, permission: "promotions.manage" },
-  { title: "Inventario", url: "/inventario", icon: Boxes, permission: "inventory.view" },
-  { title: "Compras", url: "/compras", icon: Truck, permission: "purchases.view" },
-  { title: "Clientes", url: "/clientes", icon: Users, permission: "customers.view" },
-  { title: "Proveedores", url: "/proveedores", icon: Store, permission: "suppliers.view" },
-];
-
-const ADMIN_NAV: NavItem[] = [
   { title: "Reportes", url: "/reportes", icon: BarChart3, permission: "reports.view" },
   { title: "Usuarios", url: "/usuarios", icon: UsersRound, permission: "users.manage" },
   { title: "Configuración", url: "/configuracion", icon: Settings, permission: "settings.manage" },
-];
-
-const HELP: NavItem[] = [
   { title: "Manual", url: "/manual", icon: BookOpen, permission: "pos.use" },
 ];
 
@@ -73,15 +70,30 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const { can, profile, role } = useAuth();
+  const [moreOpen, setMoreOpen] = useState(false);
 
   const isActive = (url: string) => pathname === url || pathname.startsWith(`${url}/`);
 
-  const groups: { label: string; items: NavItem[] }[] = [
-    { label: "Operación", items: OPERATION.filter((i) => can(i.permission)) },
-    { label: "Catálogo", items: CATALOG.filter((i) => can(i.permission)) },
-    { label: "Administración", items: ADMIN_NAV.filter((i) => can(i.permission)) },
-    { label: "Ayuda", items: HELP.filter((i) => can(i.permission)) },
-  ].filter((g) => g.items.length > 0);
+  const mainItems = MAIN.filter((i) => can(i.permission));
+  const moreItems = MORE.filter((i) => can(i.permission));
+  // Se abre sola si la página actual vive dentro de "Más opciones".
+  const showMore = moreOpen || collapsed || moreItems.some((i) => isActive(i.url));
+
+  const renderItem = (item: NavItem) => (
+    <SidebarMenuItem key={item.url}>
+      <SidebarMenuButton
+        asChild
+        isActive={isActive(item.url)}
+        tooltip={item.title}
+        className="h-11 rounded-xl transition-all"
+      >
+        <Link to={item.url} className="flex items-center gap-3">
+          <item.icon className="size-5 shrink-0" />
+          {!collapsed && <span className="text-sm font-medium">{item.title}</span>}
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
 
   return (
     <Sidebar collapsible="icon" className="border-r">
@@ -104,30 +116,34 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="scrollbar-slim">
-        {groups.map((group) => (
-          <SidebarGroup key={group.label}>
-            {!collapsed && <SidebarGroupLabel>{group.label}</SidebarGroupLabel>}
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {group.items.map((item) => (
-                  <SidebarMenuItem key={item.url}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive(item.url)}
-                      tooltip={item.title}
-                      className="h-11 rounded-xl transition-all"
-                    >
-                      <Link to={item.url} className="flex items-center gap-3">
-                        <item.icon className="size-5 shrink-0" />
-                        {!collapsed && <span className="text-sm font-medium">{item.title}</span>}
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>{mainItems.map(renderItem)}</SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {moreItems.length > 0 && (
+          <SidebarGroup>
+            {!collapsed && (
+              <button
+                type="button"
+                onClick={() => setMoreOpen((open) => !open)}
+                aria-expanded={showMore}
+                className="flex h-9 w-full items-center justify-between rounded-lg px-2 text-xs font-medium uppercase tracking-wide text-sidebar-foreground/60 transition-colors hover:text-sidebar-foreground"
+              >
+                Más opciones
+                <ChevronDown
+                  className={cn("size-4 transition-transform", showMore && "rotate-180")}
+                />
+              </button>
+            )}
+            {showMore && (
+              <SidebarGroupContent>
+                <SidebarMenu>{moreItems.map(renderItem)}</SidebarMenu>
+              </SidebarGroupContent>
+            )}
           </SidebarGroup>
-        ))}
+        )}
       </SidebarContent>
 
       <SidebarFooter className="p-3">

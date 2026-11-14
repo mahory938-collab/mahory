@@ -25,6 +25,7 @@ export type DashboardData = {
   salesByDay: { label: string; total: number }[];
   lowStock: { id: string; name: string; stock: number; min_stock: number }[];
   outOfStock: number;
+  activeProducts: number;
   topProducts: { name: string; quantity: number; total: number }[];
   cash: { status: string; opening: number; expected: number; openedAt: string | null } | null;
   cashMovementsToday: { ingresos: number; egresos: number; abonos: number };
@@ -36,7 +37,16 @@ async function fetchDashboard(): Promise<DashboardData> {
   const rangeStart = daysAgo(13);
   const store_id = await getDefaultStoreId();
 
-  const [salesRes, lowStockRes, outOfStockRes, itemsRes, cashRes, cashMovRes, abonosRes] = await Promise.all([
+  const [
+    salesRes,
+    lowStockRes,
+    outOfStockRes,
+    availableRes,
+    itemsRes,
+    cashRes,
+    cashMovRes,
+    abonosRes,
+  ] = await Promise.all([
     supabase
       .from("sales")
       .select("id, number, total, cost_total, status, customer_name, created_at")
@@ -56,6 +66,11 @@ async function fetchDashboard(): Promise<DashboardData> {
       .select("id", { count: "exact", head: true })
       .eq("status", "active")
       .lte("stock", 0),
+    supabase
+      .from("products")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "active")
+      .gt("stock", 0),
     supabase
       .from("sale_items")
       .select("product_name, quantity, total, created_at")
@@ -147,6 +162,7 @@ async function fetchDashboard(): Promise<DashboardData> {
     salesByDay,
     lowStock,
     outOfStock: outOfStockRes.count ?? 0,
+    activeProducts: availableRes.count ?? 0,
     topProducts,
     cashMovementsToday,
     cash: cashRes.data

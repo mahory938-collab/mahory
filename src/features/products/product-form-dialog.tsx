@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { ImagePlus, Loader2, Trash2 } from "lucide-react";
+import { ChevronDown, ImagePlus, Loader2, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -44,7 +44,7 @@ const productSchema = z.object({
   brand_id: z.string().nullable(),
   supplier_id: z.string().nullable(),
   cost: z.coerce.number().min(0, "Debe ser 0 o mayor"),
-  price: z.coerce.number().min(0, "Debe ser 0 o mayor"),
+  price: z.coerce.number().gt(0, "Escriba el precio de venta"),
   wholesale_price: z.coerce.number().min(0, "Debe ser 0 o mayor"),
   stock: z.coerce.number().min(0, "Debe ser 0 o mayor"),
   min_stock: z.coerce.number().min(0, "Debe ser 0 o mayor"),
@@ -64,7 +64,7 @@ const EMPTY_VALUES: ProductFormValues = {
   price: 0,
   wholesale_price: 0,
   stock: 0,
-  min_stock: 0,
+  min_stock: 5,
   image_url: null,
   status: "active",
 };
@@ -87,6 +87,7 @@ export function ProductFormDialog({
 }: ProductFormDialogProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [localPreview, setLocalPreview] = useState<string | null>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   const { data: categories } = useCategories();
   const { data: brands } = useBrands();
@@ -101,6 +102,7 @@ export function ProductFormDialog({
   useEffect(() => {
     if (!open) return;
     setLocalPreview(null);
+    setMoreOpen(false);
     form.reset(
       product
         ? {
@@ -151,7 +153,7 @@ export function ProductFormDialog({
   const submit = useMutation({
     mutationFn: (values: ProductFormValues) => save.mutateAsync(values),
     onSuccess: () => {
-      toast.success(product ? "Producto actualizado" : "Producto creado");
+      toast.success(product ? "Cambios guardados" : "Producto guardado");
       onOpenChange(false);
     },
     onError: (error: Error) => {
@@ -200,8 +202,8 @@ export function ProductFormDialog({
               )}
             </button>
             <div className="flex-1 space-y-1.5 pt-1">
-              <p className="text-sm font-medium">Imagen del producto</p>
-              <p className="text-xs text-muted-foreground">PNG, JPG, WEBP o GIF · máx. 20MB</p>
+              <p className="text-sm font-medium">Foto (opcional)</p>
+              <p className="text-xs text-muted-foreground">Toque el cuadro para agregar una foto</p>
               {preview && (
                 <Button
                   type="button"
@@ -221,16 +223,13 @@ export function ProductFormDialog({
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Nombre" error={form.formState.errors.name?.message} full>
-              <Input className="h-10 rounded-xl" {...form.register("name")} />
-            </Field>
-
-            <Field label="Código de barras" error={form.formState.errors.barcode?.message}>
-              <Input className="h-10 rounded-xl" {...form.register("barcode")} />
-            </Field>
-
-            <Field label="SKU" error={form.formState.errors.sku?.message}>
-              <Input className="h-10 rounded-xl" {...form.register("sku")} />
+            <Field label="Nombre del producto" error={form.formState.errors.name?.message} full>
+              <Input
+                autoFocus
+                placeholder="Ej: Blusa manga larga"
+                className="h-11 rounded-xl"
+                {...form.register("name")}
+              />
             </Field>
 
             <Field label="Categoría">
@@ -238,7 +237,7 @@ export function ProductFormDialog({
                 value={form.watch("category_id") ?? NONE}
                 onValueChange={(v) => form.setValue("category_id", v === NONE ? null : v)}
               >
-                <SelectTrigger className="h-10 rounded-xl">
+                <SelectTrigger className="h-11 rounded-xl">
                   <SelectValue placeholder="Seleccione" />
                 </SelectTrigger>
                 <SelectContent>
@@ -252,114 +251,153 @@ export function ProductFormDialog({
               </Select>
             </Field>
 
-            <Field label="Marca">
-              <Select
-                value={form.watch("brand_id") ?? NONE}
-                onValueChange={(v) => form.setValue("brand_id", v === NONE ? null : v)}
-              >
-                <SelectTrigger className="h-10 rounded-xl">
-                  <SelectValue placeholder="Seleccione" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NONE}>Sin marca</SelectItem>
-                  {brands?.map((b) => (
-                    <SelectItem key={b.id} value={b.id}>
-                      {b.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <Field
+              label="Código de barras (opcional)"
+              error={form.formState.errors.barcode?.message}
+            >
+              <Input
+                placeholder="Escanéelo o escríbalo"
+                className="h-11 rounded-xl"
+                {...form.register("barcode")}
+              />
             </Field>
 
-            <Field label="Proveedor">
-              <Select
-                value={form.watch("supplier_id") ?? NONE}
-                onValueChange={(v) => form.setValue("supplier_id", v === NONE ? null : v)}
-              >
-                <SelectTrigger className="h-10 rounded-xl">
-                  <SelectValue placeholder="Seleccione" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NONE}>Sin proveedor</SelectItem>
-                  {suppliers?.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-
-            <Field label="Estado">
-              <div className="flex h-10 items-center gap-2">
-                <Switch
-                  checked={form.watch("status") === "active"}
-                  onCheckedChange={(checked) =>
-                    form.setValue("status", checked ? "active" : "inactive")
-                  }
-                />
-                <span className="text-sm text-muted-foreground">
-                  {form.watch("status") === "active" ? "Activo" : "Inactivo"}
-                </span>
-              </div>
-            </Field>
-
-            <Field label="Costo" error={form.formState.errors.cost?.message}>
+            <Field label="Precio de compra" error={form.formState.errors.cost?.message}>
               <Input
                 type="number"
+                inputMode="decimal"
                 min={0}
-                step="0.01"
-                className="h-10 rounded-xl"
+                step="any"
+                className="h-11 rounded-xl"
                 {...form.register("cost")}
               />
             </Field>
 
-            <Field label="Precio venta" error={form.formState.errors.price?.message}>
+            <Field label="Precio de venta" error={form.formState.errors.price?.message}>
               <Input
                 type="number"
+                inputMode="decimal"
                 min={0}
-                step="0.01"
-                className="h-10 rounded-xl"
+                step="any"
+                className="h-11 rounded-xl"
                 {...form.register("price")}
               />
             </Field>
 
-            <Field
-              label="Precio mayorista"
-              error={form.formState.errors.wholesale_price?.message}
-            >
+            <Field label="Cantidad inicial" error={form.formState.errors.stock?.message}>
               <Input
                 type="number"
+                inputMode="numeric"
                 min={0}
-                step="0.01"
-                className="h-10 rounded-xl"
-                {...form.register("wholesale_price")}
-              />
-            </Field>
-
-            <Field label="Stock" error={form.formState.errors.stock?.message}>
-              <Input
-                type="number"
-                min={0}
-                step="0.01"
-                className="h-10 rounded-xl"
+                step="any"
+                className="h-11 rounded-xl"
                 {...form.register("stock")}
               />
             </Field>
 
-            <Field label="Stock mínimo" error={form.formState.errors.min_stock?.message}>
+            <Field
+              label="Avisarme cuando queden"
+              error={form.formState.errors.min_stock?.message}
+            >
               <Input
                 type="number"
+                inputMode="numeric"
                 min={0}
-                step="0.01"
-                className="h-10 rounded-xl"
+                step="any"
+                className="h-11 rounded-xl"
                 {...form.register("min_stock")}
               />
             </Field>
 
-            <Field label="Descripción" error={form.formState.errors.description?.message} full>
-              <Textarea rows={3} className="rounded-xl" {...form.register("description")} />
-            </Field>
+            <div className="sm:col-span-2">
+              <button
+                type="button"
+                onClick={() => setMoreOpen((open) => !open)}
+                aria-expanded={moreOpen}
+                className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+              >
+                <ChevronDown className={cn("size-4 transition-transform", moreOpen && "rotate-180")} />
+                {moreOpen ? "Ocultar opciones" : "Más opciones"}
+              </button>
+            </div>
+
+            {moreOpen && (
+              <>
+                <Field label="Marca">
+                  <Select
+                    value={form.watch("brand_id") ?? NONE}
+                    onValueChange={(v) => form.setValue("brand_id", v === NONE ? null : v)}
+                  >
+                    <SelectTrigger className="h-11 rounded-xl">
+                      <SelectValue placeholder="Seleccione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NONE}>Sin marca</SelectItem>
+                      {brands?.map((b) => (
+                        <SelectItem key={b.id} value={b.id}>
+                          {b.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+
+                <Field label="Proveedor">
+                  <Select
+                    value={form.watch("supplier_id") ?? NONE}
+                    onValueChange={(v) => form.setValue("supplier_id", v === NONE ? null : v)}
+                  >
+                    <SelectTrigger className="h-11 rounded-xl">
+                      <SelectValue placeholder="Seleccione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NONE}>Sin proveedor</SelectItem>
+                      {suppliers?.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+
+                <Field label="Referencia (SKU)" error={form.formState.errors.sku?.message}>
+                  <Input className="h-11 rounded-xl" {...form.register("sku")} />
+                </Field>
+
+                <Field
+                  label="Precio al por mayor"
+                  error={form.formState.errors.wholesale_price?.message}
+                >
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    step="any"
+                    className="h-11 rounded-xl"
+                    {...form.register("wholesale_price")}
+                  />
+                </Field>
+
+                <Field label="Estado">
+                  <div className="flex h-11 items-center gap-2">
+                    <Switch
+                      checked={form.watch("status") === "active"}
+                      onCheckedChange={(checked) =>
+                        form.setValue("status", checked ? "active" : "inactive")
+                      }
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      {form.watch("status") === "active" ? "Disponible para vender" : "Oculto"}
+                    </span>
+                  </div>
+                </Field>
+
+                <Field label="Descripción" error={form.formState.errors.description?.message} full>
+                  <Textarea rows={3} className="rounded-xl" {...form.register("description")} />
+                </Field>
+              </>
+            )}
           </div>
 
           <DialogFooter>
@@ -377,7 +415,7 @@ export function ProductFormDialog({
               disabled={submit.isPending || upload.isPending}
             >
               {submit.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
-              {product ? "Guardar cambios" : "Crear producto"}
+              {product ? "Guardar cambios" : "Guardar producto"}
             </Button>
           </DialogFooter>
         </form>

@@ -127,6 +127,7 @@ function PosPage() {
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [categoryPickerOpen, setCategoryPickerOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
   const [customer, setCustomer] = useState<CustomerSelection>({ id: null, name: "" });
   const [deliveryType, setDeliveryType] = useState<DeliveryType>("mostrador");
   const [deliveryAddress, setDeliveryAddress] = useState("");
@@ -140,6 +141,10 @@ function PosPage() {
   const { data: categories } = usePosCategories();
   const { data: products, isLoading } = usePosProducts(search, categoryId);
   const { data: promotions } = usePromotions();
+
+  useEffect(() => {
+    if (cart.lines.length === 0) setCartOpen(false);
+  }, [cart.lines.length]);
 
   const addToCart = (product: NonNullable<typeof products>[number]) => {
     const promo = findBestPromotion(promotions ?? [], product);
@@ -540,7 +545,7 @@ function PosPage() {
 
   return (
     <AppShell title="Punto de venta" description="Cobre rápido y sin errores" flush>
-      <div className="grid h-[calc(100vh-4rem)] grid-cols-1 grid-rows-[minmax(0,1fr)_minmax(0,1fr)] overflow-hidden lg:grid-cols-[1fr_400px] lg:grid-rows-1">
+      <div className="grid h-[calc(100vh-4rem)] grid-cols-1 grid-rows-1 overflow-hidden lg:grid-cols-[1fr_400px]">
         {/* Products */}
         <div className="flex min-h-0 min-w-0 flex-col border-r">
           <div className="flex gap-2 border-b p-4">
@@ -640,7 +645,7 @@ function PosPage() {
           )}
 
           <ScrollArea className="flex-1">
-            <div className="grid grid-cols-2 gap-3 p-4 md:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 p-4 max-lg:pb-28 md:grid-cols-3 xl:grid-cols-4">
               {isLoading &&
                 [0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
                   <Skeleton key={i} className="h-32 rounded-2xl" />
@@ -687,15 +692,29 @@ function PosPage() {
           </ScrollArea>
         </div>
 
-        {/* Cart */}
-        <div className="flex min-h-0 min-w-0 flex-col bg-surface">
-          <div className="flex items-center justify-between border-b bg-card px-4 py-3">
+        {/* Cart: columna fija en pantallas grandes, hoja deslizable en el celular */}
+        <div
+          className={cn(
+            "flex min-h-0 min-w-0 flex-col bg-surface",
+            "max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-40 max-lg:max-h-[88vh] max-lg:rounded-t-3xl max-lg:border-t max-lg:shadow-elevated",
+            !cartOpen && "max-lg:hidden",
+          )}
+        >
+          <div className="flex items-center justify-between border-b bg-card px-4 py-3 max-lg:rounded-t-3xl">
             <div className="flex items-center gap-2">
               <ShoppingCart className="size-4 text-primary" />
               <span className="font-display font-semibold">Venta actual</span>
               <Badge variant="secondary" className="rounded-full">
                 {cart.totals.itemCount}
               </Badge>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-lg text-primary lg:hidden"
+                onClick={() => setCartOpen(false)}
+              >
+                Seguir agregando
+              </Button>
             </div>
             {cart.lines.length > 0 && (
               <div className="flex items-center gap-1">
@@ -883,6 +902,30 @@ function PosPage() {
             </Button>
           </div>
         </div>
+
+        {/* Celular: fondo oscuro + barra con el total para abrir el carrito */}
+        {cartOpen && (
+          <button
+            type="button"
+            aria-label="Cerrar carrito"
+            className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+            onClick={() => setCartOpen(false)}
+          />
+        )}
+        {!cartOpen && cart.lines.length > 0 && (
+          <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-card/95 p-3 backdrop-blur lg:hidden">
+            <Button
+              className="h-14 w-full justify-between rounded-xl px-5 text-base font-semibold"
+              onClick={() => setCartOpen(true)}
+            >
+              <span className="flex items-center gap-2">
+                <ShoppingCart className="size-5" />
+                Ver venta ({cart.totals.itemCount})
+              </span>
+              <span>{formatCurrency(cart.totals.total)}</span>
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Payment / confirmation dialog */}

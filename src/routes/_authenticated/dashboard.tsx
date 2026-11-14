@@ -1,11 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   AlertTriangle,
   ArrowDownCircle,
   ArrowUpCircle,
   ArrowUpRight,
   Banknote,
+  BarChart3,
   Boxes,
   HandCoins,
   PackageX,
@@ -40,13 +41,13 @@ import { roleHasPermission } from "@/lib/permissions";
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Dashboard — Mahory" },
+      { title: "Inicio — Mahory" },
       {
         name: "description",
         content:
           "Resumen de ventas del día y del mes, ganancias, inventario bajo y estado de caja de su tienda.",
       },
-      { property: "og:title", content: "Dashboard — Mahory" },
+      { property: "og:title", content: "Inicio — Mahory" },
       {
         property: "og:description",
         content: "Indicadores de ventas, ganancias e inventario en tiempo real.",
@@ -60,6 +61,7 @@ function DashboardPage() {
   const { profile, user, role, isLoading: authLoading } = useAuth();
   const { data, isLoading } = useDashboardData(user?.id ?? null);
   const navigate = useNavigate();
+  const [showStats, setShowStats] = useState(false);
 
   const firstName = (profile?.full_name || "").split(" ")[0];
 
@@ -73,8 +75,8 @@ function DashboardPage() {
 
   return (
     <AppShell
-      title={firstName ? `Hola, ${firstName}` : "Dashboard"}
-      description="Resumen general de su tienda"
+      title={firstName ? `Hola, ${firstName}` : "Inicio"}
+      description="Así va su tienda hoy"
       actions={
         <Button asChild className="h-9 gap-2 rounded-lg">
           <Link to="/pos">
@@ -85,141 +87,53 @@ function DashboardPage() {
       }
     >
       <div className="space-y-5">
-        {/* KPI cards */}
+        {/* Acciones rápidas */}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <Button
+            asChild
+            className="h-14 justify-start gap-3 rounded-xl text-base font-semibold shadow-glow"
+          >
+            <Link to="/pos">
+              <ShoppingCart className="size-5" />
+              Nueva venta
+            </Link>
+          </Button>
+          <QuickAction to="/productos" icon={Plus} label="Agregar producto" />
+          <QuickAction to="/inventario" icon={Boxes} label="Ajustar inventario" />
+          <QuickAction to="/caja" icon={Wallet} label="Movimiento de caja" />
+        </div>
+
+        {/* Lo más importante de hoy */}
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <KpiCard
-            label="Ventas del día"
+            label="Vendido hoy"
             value={formatCurrency(data?.todayTotal)}
-            hint={`${formatNumber(data?.todayCount)} transacciones`}
+            hint={`${formatNumber(data?.todayCount)} ventas`}
             icon={Receipt}
             loading={isLoading}
             tone="primary"
           />
           <KpiCard
-            label="Ventas del mes"
-            value={formatCurrency(data?.monthTotal)}
-            hint={`${formatNumber(data?.monthCount)} ventas este mes`}
-            icon={TrendingUp}
+            label="Gastado hoy"
+            value={formatCurrency(data?.cashMovementsToday.egresos)}
+            hint="Salidas de dinero registradas en caja"
+            icon={ArrowDownCircle}
             loading={isLoading}
           />
           <KpiCard
-            label="Ganancias del mes"
-            value={formatCurrency(data?.monthProfit)}
-            hint="Ingresos menos costo de mercancía"
+            label="Balance de hoy"
+            value={formatCurrency((data?.todayTotal ?? 0) - (data?.cashMovementsToday.egresos ?? 0))}
+            hint="Ventas menos gastos. No descuenta lo que costó la mercancía."
             icon={Banknote}
             loading={isLoading}
           />
           <KpiCard
-            label="Ticket promedio"
-            value={formatCurrency(data?.ticketAverage)}
-            hint="Promedio por venta del mes"
-            icon={ArrowUpRight}
+            label="Productos disponibles"
+            value={formatNumber(data?.activeProducts)}
+            hint={`${formatNumber(data?.outOfStock)} agotados`}
+            icon={Boxes}
             loading={isLoading}
           />
-        </div>
-
-        {/* Charts */}
-        <div className="grid gap-4 xl:grid-cols-3">
-          <Card className="rounded-2xl shadow-soft xl:col-span-2">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Ventas de los últimos 14 días</CardTitle>
-            </CardHeader>
-            <CardContent className="h-72">
-              {isLoading ? (
-                <Skeleton className="size-full rounded-xl" />
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={data?.salesByDay ?? []}>
-                    <defs>
-                      <linearGradient id="salesFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="var(--color-chart-1)" stopOpacity={0.35} />
-                        <stop offset="100%" stopColor="var(--color-chart-1)" stopOpacity={0.02} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
-                    <XAxis
-                      dataKey="label"
-                      tickLine={false}
-                      axisLine={false}
-                      fontSize={11}
-                      stroke="var(--color-muted-foreground)"
-                    />
-                    <YAxis
-                      tickFormatter={(v: number) => `${Math.round(v / 1000)}k`}
-                      tickLine={false}
-                      axisLine={false}
-                      fontSize={11}
-                      width={44}
-                      stroke="var(--color-muted-foreground)"
-                    />
-                    <Tooltip
-                      formatter={(v) => formatCurrency(Number(v))}
-                      contentStyle={{
-                        borderRadius: 12,
-                        border: "1px solid var(--color-border)",
-                        background: "var(--color-card)",
-                        color: "var(--color-card-foreground)",
-                        fontSize: 12,
-                      }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="total"
-                      name="Ventas"
-                      stroke="var(--color-chart-1)"
-                      strokeWidth={2.5}
-                      fill="url(#salesFill)"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-2xl shadow-soft">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Productos más vendidos</CardTitle>
-            </CardHeader>
-            <CardContent className="h-72">
-              {isLoading ? (
-                <Skeleton className="size-full rounded-xl" />
-              ) : (data?.topProducts.length ?? 0) === 0 ? (
-                <EmptyState text="Aún no hay ventas registradas este mes." />
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={data?.topProducts ?? []} layout="vertical" margin={{ left: 8 }}>
-                    <XAxis type="number" hide />
-                    <YAxis
-                      type="category"
-                      dataKey="name"
-                      width={110}
-                      tickLine={false}
-                      axisLine={false}
-                      fontSize={11}
-                      stroke="var(--color-muted-foreground)"
-                    />
-                    <Tooltip
-                      formatter={(v) => `${formatNumber(Number(v))} und.`}
-                      contentStyle={{
-                        borderRadius: 12,
-                        border: "1px solid var(--color-border)",
-                        background: "var(--color-card)",
-                        color: "var(--color-card-foreground)",
-                        fontSize: 12,
-                      }}
-                    />
-                    <Bar
-                      dataKey="quantity"
-                      name="Cantidad"
-                      fill="var(--color-chart-1)"
-                      radius={[0, 8, 8, 0]}
-                      barSize={18}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
         </div>
 
         {/* Lists */}
@@ -348,7 +262,7 @@ function DashboardPage() {
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <AlertTriangle className="size-4 text-warning" />
-                  Inventario bajo
+                  Por agotarse
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 pt-0">
@@ -358,7 +272,7 @@ function DashboardPage() {
                   <>
                     {(data?.lowStock.length ?? 0) === 0 && (
                       <p className="text-sm text-muted-foreground">
-                        Todo el inventario está en niveles normales.
+                        Por ahora no hay productos por agotarse.
                       </p>
                     )}
                     {data?.lowStock.map((p) => (
@@ -385,18 +299,150 @@ function DashboardPage() {
           </div>
         </div>
 
-        {/* Quick actions */}
-        <Card className="rounded-2xl shadow-soft">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Acciones rápidas</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-3 pt-0 sm:grid-cols-2 lg:grid-cols-4">
-            <QuickAction to="/pos" icon={ShoppingCart} label="Nueva venta" />
-            <QuickAction to="/productos" icon={Plus} label="Agregar producto" />
-            <QuickAction to="/inventario" icon={Boxes} label="Ajustar inventario" />
-            <QuickAction to="/caja" icon={Wallet} label="Movimiento de caja" />
-          </CardContent>
-        </Card>
+        <div>
+          <Button
+            variant="ghost"
+            onClick={() => setShowStats((open) => !open)}
+            aria-expanded={showStats}
+            className="gap-2 rounded-xl text-sm"
+          >
+            <BarChart3 className="size-4" />
+            {showStats ? "Ocultar estadísticas del mes" : "Ver estadísticas del mes"}
+          </Button>
+        </div>
+
+        {showStats && (
+          <div className="space-y-5">
+            <div className="grid gap-4 sm:grid-cols-3">
+              <KpiCard
+                label="Ventas del mes"
+                value={formatCurrency(data?.monthTotal)}
+                hint={`${formatNumber(data?.monthCount)} ventas este mes`}
+                icon={TrendingUp}
+                loading={isLoading}
+              />
+              <KpiCard
+                label="Ganancia del mes"
+                value={formatCurrency(data?.monthProfit)}
+                hint="Ventas menos lo que costó la mercancía. No descuenta gastos."
+                icon={Banknote}
+                loading={isLoading}
+              />
+              <KpiCard
+                label="Venta promedio"
+                value={formatCurrency(data?.ticketAverage)}
+                hint="Lo que deja cada venta en promedio este mes"
+                icon={ArrowUpRight}
+                loading={isLoading}
+              />
+            </div>
+
+        {/* Charts */}
+        <div className="grid gap-4 xl:grid-cols-3">
+          <Card className="rounded-2xl shadow-soft xl:col-span-2">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Ventas de los últimos 14 días</CardTitle>
+            </CardHeader>
+            <CardContent className="h-72">
+              {isLoading ? (
+                <Skeleton className="size-full rounded-xl" />
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={data?.salesByDay ?? []}>
+                    <defs>
+                      <linearGradient id="salesFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="var(--color-chart-1)" stopOpacity={0.35} />
+                        <stop offset="100%" stopColor="var(--color-chart-1)" stopOpacity={0.02} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
+                    <XAxis
+                      dataKey="label"
+                      tickLine={false}
+                      axisLine={false}
+                      fontSize={11}
+                      stroke="var(--color-muted-foreground)"
+                    />
+                    <YAxis
+                      tickFormatter={(v: number) => `${Math.round(v / 1000)}k`}
+                      tickLine={false}
+                      axisLine={false}
+                      fontSize={11}
+                      width={44}
+                      stroke="var(--color-muted-foreground)"
+                    />
+                    <Tooltip
+                      formatter={(v) => formatCurrency(Number(v))}
+                      contentStyle={{
+                        borderRadius: 12,
+                        border: "1px solid var(--color-border)",
+                        background: "var(--color-card)",
+                        color: "var(--color-card-foreground)",
+                        fontSize: 12,
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="total"
+                      name="Ventas"
+                      stroke="var(--color-chart-1)"
+                      strokeWidth={2.5}
+                      fill="url(#salesFill)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl shadow-soft">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Productos más vendidos</CardTitle>
+            </CardHeader>
+            <CardContent className="h-72">
+              {isLoading ? (
+                <Skeleton className="size-full rounded-xl" />
+              ) : (data?.topProducts.length ?? 0) === 0 ? (
+                <EmptyState text="Aún no hay ventas registradas este mes." />
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={data?.topProducts ?? []} layout="vertical" margin={{ left: 8 }}>
+                    <XAxis type="number" hide />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      width={110}
+                      tickLine={false}
+                      axisLine={false}
+                      fontSize={11}
+                      stroke="var(--color-muted-foreground)"
+                    />
+                    <Tooltip
+                      formatter={(v) => `${formatNumber(Number(v))} und.`}
+                      contentStyle={{
+                        borderRadius: 12,
+                        border: "1px solid var(--color-border)",
+                        background: "var(--color-card)",
+                        color: "var(--color-card-foreground)",
+                        fontSize: 12,
+                      }}
+                    />
+                    <Bar
+                      dataKey="quantity"
+                      name="Cantidad"
+                      fill="var(--color-chart-1)"
+                      radius={[0, 8, 8, 0]}
+                      barSize={18}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+          </div>
+        )}
       </div>
     </AppShell>
   );
