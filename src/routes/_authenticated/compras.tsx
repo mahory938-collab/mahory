@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Loader2, PackageCheck, Plus } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Loader2, PackageCheck, Plus, Store } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -76,10 +76,18 @@ function ComprasPage() {
       description="Órdenes de compra"
       actions={
         canManage && (
-          <Button className="h-9 gap-2 rounded-lg" onClick={() => setFormOpen(true)}>
-            <Plus className="size-4" />
-            <span className="hidden sm:inline">Nueva compra</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button asChild variant="outline" className="h-9 gap-2 rounded-lg">
+              <Link to="/proveedores">
+                <Store className="size-4" />
+                <span className="hidden sm:inline">Proveedores</span>
+              </Link>
+            </Button>
+            <Button className="h-9 gap-2 rounded-lg" onClick={() => setFormOpen(true)}>
+              <Plus className="size-4" />
+              <span className="hidden sm:inline">Nueva compra</span>
+            </Button>
+          </div>
         )
       }
     >

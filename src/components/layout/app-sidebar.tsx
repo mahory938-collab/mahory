@@ -3,15 +3,13 @@ import { useState } from "react";
 import {
   ArrowLeftRight,
   BarChart3,
-  BookOpen,
   Boxes,
   ChevronDown,
   LayoutDashboard,
-  Layers,
   Package,
+  Receipt,
   Settings,
   ShoppingCart,
-  Store,
   Tag,
   Truck,
   Users,
@@ -50,19 +48,19 @@ const MAIN: NavItem[] = [
   { title: "Productos", url: "/productos", icon: Package, permission: "products.view" },
   { title: "Inventario", url: "/inventario", icon: Boxes, permission: "inventory.view" },
   { title: "Caja", url: "/caja", icon: Wallet, permission: "cash.use" },
+  { title: "Gastos", url: "/gastos", icon: Receipt, permission: "expenses.manage" },
 ];
 
 // Lo demás queda guardado en "Más opciones" para no abrumar.
+// Categorías (en Productos), Proveedores (en Compras) y el Manual (en el menú de la
+// cuenta) ya no ocupan lugar aquí: se abren desde donde se usan.
 const MORE: NavItem[] = [
   { title: "Clientes", url: "/clientes", icon: Users, permission: "customers.view" },
   { title: "Compras", url: "/compras", icon: Truck, permission: "purchases.view" },
-  { title: "Proveedores", url: "/proveedores", icon: Store, permission: "suppliers.view" },
-  { title: "Categorías", url: "/categorias", icon: Layers, permission: "categories.manage" },
   { title: "Promociones", url: "/promociones", icon: Tag, permission: "promotions.manage" },
   { title: "Reportes", url: "/reportes", icon: BarChart3, permission: "reports.view" },
   { title: "Usuarios", url: "/usuarios", icon: UsersRound, permission: "users.manage" },
   { title: "Configuración", url: "/configuracion", icon: Settings, permission: "settings.manage" },
-  { title: "Manual", url: "/manual", icon: BookOpen, permission: "pos.use" },
 ];
 
 export function AppSidebar() {

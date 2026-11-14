@@ -19,6 +19,7 @@ import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedComprasRouteImport } from './routes/_authenticated/compras'
 import { Route as AuthenticatedConfiguracionRouteImport } from './routes/_authenticated/configuracion'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedGastosRouteImport } from './routes/_authenticated/gastos'
 import { Route as AuthenticatedInventarioRouteImport } from './routes/_authenticated/inventario'
 import { Route as AuthenticatedManualRouteImport } from './routes/_authenticated/manual'
 import { Route as AuthenticatedPosRouteImport } from './routes/_authenticated/pos'
@@ -79,6 +80,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedGastosRoute = AuthenticatedGastosRouteImport.update({
+  id: '/gastos',
+  path: '/gastos',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedInventarioRoute = AuthenticatedInventarioRouteImport.update({
   id: '/inventario',
   path: '/inventario',
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/compras': typeof AuthenticatedComprasRoute
   '/configuracion': typeof AuthenticatedConfiguracionRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/gastos': typeof AuthenticatedGastosRoute
   '/inventario': typeof AuthenticatedInventarioRoute
   '/manual': typeof AuthenticatedManualRoute
   '/pos': typeof AuthenticatedPosRoute
@@ -157,6 +164,7 @@ export interface FileRoutesByTo {
   '/compras': typeof AuthenticatedComprasRoute
   '/configuracion': typeof AuthenticatedConfiguracionRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/gastos': typeof AuthenticatedGastosRoute
   '/inventario': typeof AuthenticatedInventarioRoute
   '/manual': typeof AuthenticatedManualRoute
   '/pos': typeof AuthenticatedPosRoute
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   '/_authenticated/compras': typeof AuthenticatedComprasRoute
   '/_authenticated/configuracion': typeof AuthenticatedConfiguracionRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/gastos': typeof AuthenticatedGastosRoute
   '/_authenticated/inventario': typeof AuthenticatedInventarioRoute
   '/_authenticated/manual': typeof AuthenticatedManualRoute
   '/_authenticated/pos': typeof AuthenticatedPosRoute
@@ -201,6 +210,7 @@ export interface FileRouteTypes {
     | '/compras'
     | '/configuracion'
     | '/dashboard'
+    | '/gastos'
     | '/inventario'
     | '/manual'
     | '/pos'
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
     | '/compras'
     | '/configuracion'
     | '/dashboard'
+    | '/gastos'
     | '/inventario'
     | '/manual'
     | '/pos'
@@ -242,6 +253,7 @@ export interface FileRouteTypes {
     | '/_authenticated/compras'
     | '/_authenticated/configuracion'
     | '/_authenticated/dashboard'
+    | '/_authenticated/gastos'
     | '/_authenticated/inventario'
     | '/_authenticated/manual'
     | '/_authenticated/pos'
@@ -332,6 +344,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/gastos': {
+      id: '/_authenticated/gastos'
+      path: '/gastos'
+      fullPath: '/gastos'
+      preLoaderRoute: typeof AuthenticatedGastosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/inventario': {
       id: '/_authenticated/inventario'
       path: '/inventario'
@@ -405,6 +424,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedComprasRoute: typeof AuthenticatedComprasRoute
   AuthenticatedConfiguracionRoute: typeof AuthenticatedConfiguracionRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedGastosRoute: typeof AuthenticatedGastosRoute
   AuthenticatedInventarioRoute: typeof AuthenticatedInventarioRoute
   AuthenticatedManualRoute: typeof AuthenticatedManualRoute
   AuthenticatedPosRoute: typeof AuthenticatedPosRoute
@@ -423,6 +443,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedComprasRoute: AuthenticatedComprasRoute,
   AuthenticatedConfiguracionRoute: AuthenticatedConfiguracionRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedGastosRoute: AuthenticatedGastosRoute,
   AuthenticatedInventarioRoute: AuthenticatedInventarioRoute,
   AuthenticatedManualRoute: AuthenticatedManualRoute,
   AuthenticatedPosRoute: AuthenticatedPosRoute,

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
 import { daysAgo, startOfMonth, startOfToday } from "@/lib/format";
+import { toDateKey } from "@/features/expenses/use-expenses";
 import { getDefaultStoreId } from "@/lib/store";
 
 export type SaleRow = {
@@ -29,6 +30,8 @@ export type DashboardData = {
   topProducts: { name: string; quantity: number; total: number }[];
   cash: { status: string; opening: number; expected: number; openedAt: string | null } | null;
   cashMovementsToday: { ingresos: number; egresos: number; abonos: number };
+  /** Gastos registrados hoy en la pantalla Gastos (no incluye egresos de caja). */
+  expensesToday: number;
 };
 
 async function fetchDashboard(): Promise<DashboardData> {
@@ -46,6 +49,7 @@ async function fetchDashboard(): Promise<DashboardData> {
     cashRes,
     cashMovRes,
     abonosRes,
+    expensesRes,
   ] = await Promise.all([
     supabase
       .from("sales")
@@ -90,6 +94,7 @@ async function fetchDashboard(): Promise<DashboardData> {
       .in("type", ["ingreso", "egreso"])
       .gte("created_at", todayStart),
     supabase.from("customer_payments").select("amount").gte("created_at", todayStart),
+    supabase.from("expenses").select("amount").eq("expense_date", toDateKey(new Date())),
   ]);
 
   const sales = (salesRes.data ?? []).map((s) => ({
@@ -165,6 +170,7 @@ async function fetchDashboard(): Promise<DashboardData> {
     activeProducts: availableRes.count ?? 0,
     topProducts,
     cashMovementsToday,
+    expensesToday: (expensesRes.data ?? []).reduce((sum, e) => sum + Number(e.amount), 0),
     cash: cashRes.data
       ? {
           status: cashRes.data.status,

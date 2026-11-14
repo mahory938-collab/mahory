@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ImageOff, Pencil, Plus, Scan, Search, Trash2 } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ImageOff, Layers, Pencil, Plus, Scan, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -112,6 +112,12 @@ function ProductosPage() {
       actions={
         canManage && (
           <div className="flex items-center gap-2">
+            <Button asChild variant="outline" className="h-9 gap-2 rounded-lg">
+              <Link to="/categorias">
+                <Layers className="size-4" />
+                <span className="hidden sm:inline">Categorías</span>
+              </Link>
+            </Button>
             <Button
               variant="outline"
               className="h-9 gap-2 rounded-lg"

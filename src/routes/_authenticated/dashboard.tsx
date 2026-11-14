@@ -64,6 +64,7 @@ function DashboardPage() {
   const [showStats, setShowStats] = useState(false);
 
   const firstName = (profile?.full_name || "").split(" ")[0];
+  const spentToday = (data?.cashMovementsToday.egresos ?? 0) + (data?.expensesToday ?? 0);
 
   useEffect(() => {
     if (!authLoading && !roleHasPermission(role, "dashboard.view")) {
@@ -115,14 +116,14 @@ function DashboardPage() {
           />
           <KpiCard
             label="Gastado hoy"
-            value={formatCurrency(data?.cashMovementsToday.egresos)}
-            hint="Salidas de dinero registradas en caja"
+            value={formatCurrency(spentToday)}
+            hint="Gastos del día más egresos de caja"
             icon={ArrowDownCircle}
             loading={isLoading}
           />
           <KpiCard
             label="Balance de hoy"
-            value={formatCurrency((data?.todayTotal ?? 0) - (data?.cashMovementsToday.egresos ?? 0))}
+            value={formatCurrency((data?.todayTotal ?? 0) - spentToday)}
             hint="Ventas menos gastos. No descuenta lo que costó la mercancía."
             icon={Banknote}
             loading={isLoading}

@@ -90,6 +90,9 @@ export function AppShell({ title, description, actions, children, flush }: AppSh
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
+                    <Link to="/manual">Manual de uso</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link to="/configuracion">Configuración</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem

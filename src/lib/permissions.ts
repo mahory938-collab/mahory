@@ -35,7 +35,8 @@ export type Permission =
   | "users.manage"
   | "promotions.manage"
   | "stores.manage"
-  | "categories.manage";
+  | "categories.manage"
+  | "expenses.manage";
 
 const VENDEDOR: Permission[] = ["pos.use", "customers.view", "customers.manage", "cash.use"];
 
@@ -61,6 +62,7 @@ const ADMIN: Permission[] = [
   "promotions.manage",
   "stores.manage",
   "categories.manage",
+  "expenses.manage",
 ];
 
 export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
