@@ -39,9 +39,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/clientes")({
   head: () => ({
     meta: [
-      { title: "Clientes — Body Positive POS" },
+      { title: "Clientes — Mahory" },
       { name: "description", content: "Administre clientes, créditos y direcciones." },
-      { property: "og:title", content: "Clientes — Body Positive POS" },
+      { property: "og:title", content: "Clientes — Mahory" },
       { property: "og:description", content: "Administre clientes, créditos y direcciones." },
     ],
   }),

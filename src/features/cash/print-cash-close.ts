@@ -69,23 +69,23 @@ export function printCashClose(
           body {
             font-family: 'Courier New', monospace;
             font-size: ${fontSizePx}px;
-            color: #705241;
+            color: #2a1b3d;
             padding: 12px;
             width: ${bodyWidthPx}px;
             margin: 0 auto;
           }
-          h1 { font-size: 15px; margin: 0 0 2px; text-align: center; color: #705241; }
-          .muted { color: #a1755d; text-align: center; }
+          h1 { font-size: 15px; margin: 0 0 2px; text-align: center; color: #2a1b3d; }
+          .muted { color: #8157b8; text-align: center; }
           table { width: 100%; border-collapse: collapse; }
           .totals td { padding-top: 3px; }
-          hr { border: none; border-top: 1px dashed #dbaa84; margin: 10px 0; }
+          hr { border: none; border-top: 1px dashed #d6c0ee; margin: 10px 0; }
           .right { text-align: right; }
-          .bold { font-weight: 700; color: #705241; }
+          .bold { font-weight: 700; color: #2a1b3d; }
           .footer { text-align: center; margin-top: 12px; }
         </style>
       </head>
       <body>
-        <h1>${escapeHtml(store?.name ?? "Body Positive POS")}</h1>
+        <h1>${escapeHtml(store?.name ?? "Mahory")}</h1>
         <p class="muted bold">Cierre de caja</p>
         <hr />
         <p>Abierta: ${formatDateTime(data.openedAt)}${data.openedByName ? ` · ${escapeHtml(data.openedByName)}` : ""}<br/>Cerrada: ${formatDateTime(data.closedAt)}</p>

@@ -87,13 +87,17 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r">
       <SidebarHeader className="p-3">
         <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
-          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-brand shadow-glow">
-            <Store className="size-5 text-primary-foreground" />
-          </div>
+          <img
+            src="/logo-mahory.png"
+            alt="Mahory"
+            className="size-10 shrink-0 rounded-full shadow-glow"
+          />
           {!collapsed && (
             <div className="min-w-0">
-              <p className="truncate font-display text-sm font-semibold">Body Positive POS</p>
-              <p className="truncate text-xs text-muted-foreground">Punto de venta</p>
+              <p className="truncate font-serif text-base font-semibold uppercase tracking-[0.25em]">
+                Mahory
+              </p>
+              <p className="truncate text-xs text-muted-foreground">Viste con amor</p>
             </div>
           )}
         </div>

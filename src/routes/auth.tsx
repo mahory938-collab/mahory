@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useEffect, useState } from "react";
-import { Loader2, LockKeyhole, Mail, Store } from "lucide-react";
+import { Loader2, LockKeyhole, Mail } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -16,13 +16,13 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Iniciar sesión — Body Positive POS" },
+      { title: "Iniciar sesión — Mahory" },
       {
         name: "description",
         content:
           "Acceda al punto de venta: administre ventas, inventario, caja y reportes de su tienda.",
       },
-      { property: "og:title", content: "Iniciar sesión — Body Positive POS" },
+      { property: "og:title", content: "Iniciar sesión — Mahory" },
       {
         property: "og:description",
         content: "Punto de venta profesional para tiendas de retail en Colombia.",
@@ -108,17 +108,15 @@ function AuthPage() {
       {/* Brand panel */}
       <div className="relative hidden overflow-hidden bg-gradient-brand p-12 lg:flex lg:flex-col lg:justify-between">
         <div className="flex items-center gap-3">
-          <div className="grid size-11 place-items-center rounded-2xl bg-primary-foreground/15 backdrop-blur">
-            <Store className="size-6 text-primary-foreground" />
-          </div>
-          <span className="font-display text-lg font-semibold text-primary-foreground">
-            Body Positive POS
+          <img src="/logo-mahory.png" alt="Mahory" className="size-14 rounded-full shadow-glow" />
+          <span className="font-serif text-xl font-semibold uppercase tracking-[0.3em] text-primary-foreground">
+            Mahory
           </span>
         </div>
 
         <div className="max-w-md space-y-5">
           <h2 className="font-display text-4xl font-semibold leading-tight text-primary-foreground">
-            Venda más rápido, controle todo su negocio.
+            Viste con amor, brilla con estilo.
           </h2>
           <p className="text-primary-foreground/80">
             Punto de venta, inventario, caja, compras y reportes en un solo sistema diseñado para
@@ -132,7 +130,7 @@ function AuthPage() {
         </div>
 
         <p className="text-xs text-primary-foreground/60">
-          © {new Date().getFullYear()} Body Positive POS · Todos los derechos reservados
+          © {new Date().getFullYear()} Mahory · Todos los derechos reservados
         </p>
       </div>
 
@@ -140,9 +138,7 @@ function AuthPage() {
       <div className="flex items-center justify-center bg-background p-6">
         <div className="w-full max-w-sm animate-pop-in">
           <div className="mb-8 lg:hidden">
-            <div className="grid size-12 place-items-center rounded-2xl bg-gradient-brand shadow-glow">
-              <Store className="size-6 text-primary-foreground" />
-            </div>
+            <img src="/logo-mahory.png" alt="Mahory" className="size-16 rounded-full shadow-glow" />
           </div>
 
           <h1 className="font-display text-2xl font-semibold">

@@ -29,9 +29,9 @@ import { downloadJson } from "@/lib/csv";
 export const Route = createFileRoute("/_authenticated/configuracion")({
   head: () => ({
     meta: [
-      { title: "Configuración — Body Positive POS" },
+      { title: "Configuración — Mahory" },
       { name: "description", content: "Configure la tienda, impuestos e impresoras." },
-      { property: "og:title", content: "Configuración — Body Positive POS" },
+      { property: "og:title", content: "Configuración — Mahory" },
       { property: "og:description", content: "Configure la tienda, impuestos e impresoras." },
     ],
   }),

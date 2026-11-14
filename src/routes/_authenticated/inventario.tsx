@@ -27,9 +27,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/inventario")({
   head: () => ({
     meta: [
-      { title: "Inventario — Body Positive POS" },
+      { title: "Inventario — Mahory" },
       { name: "description", content: "Controle existencias, ajustes y kardex." },
-      { property: "og:title", content: "Inventario — Body Positive POS" },
+      { property: "og:title", content: "Inventario — Mahory" },
       { property: "og:description", content: "Controle existencias, ajustes y kardex." },
     ],
   }),

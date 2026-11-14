@@ -49,9 +49,9 @@ import { ROLE_LABELS, type AppRole } from "@/lib/permissions";
 export const Route = createFileRoute("/_authenticated/usuarios")({
   head: () => ({
     meta: [
-      { title: "Usuarios — Body Positive POS" },
+      { title: "Usuarios — Mahory" },
       { name: "description", content: "Administre el equipo y sus roles." },
-      { property: "og:title", content: "Usuarios — Body Positive POS" },
+      { property: "og:title", content: "Usuarios — Mahory" },
       { property: "og:description", content: "Administre el equipo y sus roles." },
     ],
   }),

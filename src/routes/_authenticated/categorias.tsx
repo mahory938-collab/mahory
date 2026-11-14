@@ -36,9 +36,9 @@ import { roleHasPermission } from "@/lib/permissions";
 export const Route = createFileRoute("/_authenticated/categorias")({
   head: () => ({
     meta: [
-      { title: "Categorías — Body Positive POS" },
+      { title: "Categorías — Mahory" },
       { name: "description", content: "Administre las categorías del catálogo." },
-      { property: "og:title", content: "Categorías — Body Positive POS" },
+      { property: "og:title", content: "Categorías — Mahory" },
       { property: "og:description", content: "Administre las categorías del catálogo." },
     ],
   }),

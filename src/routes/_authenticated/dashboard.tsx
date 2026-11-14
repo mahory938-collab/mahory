@@ -40,13 +40,13 @@ import { roleHasPermission } from "@/lib/permissions";
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Dashboard — Body Positive POS" },
+      { title: "Dashboard — Mahory" },
       {
         name: "description",
         content:
           "Resumen de ventas del día y del mes, ganancias, inventario bajo y estado de caja de su tienda.",
       },
-      { property: "og:title", content: "Dashboard — Body Positive POS" },
+      { property: "og:title", content: "Dashboard — Mahory" },
       {
         property: "og:description",
         content: "Indicadores de ventas, ganancias e inventario en tiempo real.",

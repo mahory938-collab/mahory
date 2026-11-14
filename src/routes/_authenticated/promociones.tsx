@@ -38,9 +38,9 @@ import { formatDate } from "@/lib/format";
 export const Route = createFileRoute("/_authenticated/promociones")({
   head: () => ({
     meta: [
-      { title: "Promociones — Body Positive POS" },
+      { title: "Promociones — Mahory" },
       { name: "description", content: "Cree descuentos por producto, categoría o generales con vigencia." },
-      { property: "og:title", content: "Promociones — Body Positive POS" },
+      { property: "og:title", content: "Promociones — Mahory" },
       {
         property: "og:description",
         content: "Cree descuentos por producto, categoría o generales con vigencia.",

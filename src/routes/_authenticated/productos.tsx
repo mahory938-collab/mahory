@@ -39,9 +39,9 @@ import { roleHasPermission } from "@/lib/permissions";
 export const Route = createFileRoute("/_authenticated/productos")({
   head: () => ({
     meta: [
-      { title: "Productos — Body Positive POS" },
+      { title: "Productos — Mahory" },
       { name: "description", content: "Cree productos, agregue imágenes y organice su catálogo." },
-      { property: "og:title", content: "Productos — Body Positive POS" },
+      { property: "og:title", content: "Productos — Mahory" },
       { property: "og:description", content: "Cree productos, agregue imágenes y organice su catálogo." },
     ],
   }),

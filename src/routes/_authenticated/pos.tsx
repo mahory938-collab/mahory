@@ -82,13 +82,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/pos")({
   head: () => ({
     meta: [
-      { title: "Punto de venta — Body Positive POS" },
+      { title: "Punto de venta — Mahory" },
       {
         name: "description",
         content:
           "Pantalla de punto de venta optimizada para pantalla táctil: búsqueda rápida, código de barras y pagos mixtos.",
       },
-      { property: "og:title", content: "Punto de venta — Body Positive POS" },
+      { property: "og:title", content: "Punto de venta — Mahory" },
       {
         property: "og:description",
         content: "Cobre en segundos con búsqueda rápida, escáner y múltiples métodos de pago.",

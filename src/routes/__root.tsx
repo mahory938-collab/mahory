@@ -75,14 +75,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Body Positive POS" },
-      { name: "description", content: "Body Positive POS is a professional desktop point-of-sale application for Windows, designed for retail stores." },
-      { property: "og:title", content: "Body Positive POS" },
-      { property: "og:description", content: "Body Positive POS is a professional desktop point-of-sale application for Windows, designed for retail stores." },
+      { title: "Mahory" },
+      { name: "description", content: "Mahory — Viste con amor, brilla con estilo. Sistema de punto de venta para tu tienda." },
+      { property: "og:title", content: "Mahory" },
+      { property: "og:description", content: "Mahory — Viste con amor, brilla con estilo. Sistema de punto de venta para tu tienda." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Body Positive POS" },
-      { name: "twitter:description", content: "Body Positive POS is a professional desktop point-of-sale application for Windows, designed for retail stores." },
+      { name: "twitter:title", content: "Mahory" },
+      { name: "twitter:description", content: "Mahory — Viste con amor, brilla con estilo. Sistema de punto de venta para tu tienda." },
     ],
     links: [
       {

@@ -33,9 +33,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/manual")({
   head: () => ({
     meta: [
-      { title: "Manual — Body Positive POS" },
+      { title: "Manual — Mahory" },
       { name: "description", content: "Guía de uso de cada módulo del sistema." },
-      { property: "og:title", content: "Manual — Body Positive POS" },
+      { property: "og:title", content: "Manual — Mahory" },
       { property: "og:description", content: "Guía de uso de cada módulo del sistema." },
     ],
   }),

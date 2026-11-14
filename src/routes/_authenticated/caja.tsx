@@ -37,9 +37,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/caja")({
   head: () => ({
     meta: [
-      { title: "Caja — Body Positive POS" },
+      { title: "Caja — Mahory" },
       { name: "description", content: "Controle el efectivo de cada turno." },
-      { property: "og:title", content: "Caja — Body Positive POS" },
+      { property: "og:title", content: "Caja — Mahory" },
       { property: "og:description", content: "Controle el efectivo de cada turno." },
     ],
   }),

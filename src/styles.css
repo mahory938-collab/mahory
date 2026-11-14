@@ -5,9 +5,11 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * POS Design System — "Honey Spice"
- * Primary: canela (#A1755D). Full identity built from a warm café/caramelo/miel
- * palette. Every color below is derived from the 7 brand tones in --palette-*.
+ * POS Design System — "Mahory"
+ * Primary: lila (#8157B8 en claro, #C3A6E8 en oscuro). Identidad construida con el
+ * lila del logo, negro violáceo y blanco. Every color below is derived from the
+ * 7 brand tones in --palette-*. Los nombres (marfil, canela...) se conservan por
+ * compatibilidad con el sistema original; solo cambian los valores.
  * Never hardcode colors in components — consume these semantic tokens instead.
  */
 
@@ -78,9 +80,9 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --shadow-soft: 0 1px 2px oklch(0.3 0.03 50 / 0.06), 0 8px 24px -12px oklch(0.3 0.03 50 / 0.16);
-  --shadow-card: 0 1px 3px oklch(0.3 0.03 50 / 0.08), 0 12px 32px -16px oklch(0.3 0.03 50 / 0.2);
-  --shadow-elevated: 0 2px 6px oklch(0.3 0.03 50 / 0.1), 0 24px 48px -20px oklch(0.3 0.03 50 / 0.28);
+  --shadow-soft: 0 1px 2px oklch(0.25 0.05 300 / 0.06), 0 8px 24px -12px oklch(0.25 0.05 300 / 0.16);
+  --shadow-card: 0 1px 3px oklch(0.25 0.05 300 / 0.08), 0 12px 32px -16px oklch(0.25 0.05 300 / 0.2);
+  --shadow-elevated: 0 2px 6px oklch(0.25 0.05 300 / 0.1), 0 24px 48px -20px oklch(0.25 0.05 300 / 0.28);
   --shadow-glow: 0 8px 32px -8px var(--primary-glow);
 }
 
@@ -88,13 +90,13 @@
   --radius: 0.875rem;
 
   /* Brand palette — the single source of truth for every color below */
-  --palette-marfil: #ede0d8; /* Marfil rosado */
-  --palette-crema: #e7c3a7; /* Crema cálido */
-  --palette-miel: #dbaa84; /* Beige miel */
-  --palette-caramelo: #d09d78; /* Caramelo suave */
-  --palette-cafe-rosado: #b3846c; /* Café rosado */
-  --palette-canela: #a1755d; /* Canela / taupe */
-  --palette-cafe-profundo: #705241; /* Café profundo */
+  --palette-marfil: #f6f1fa; /* Blanco lavanda */
+  --palette-crema: #e8dbf4; /* Lila muy claro */
+  --palette-miel: #d6c0ee; /* Lila claro */
+  --palette-caramelo: #c3a6e8; /* Lila del logo */
+  --palette-cafe-rosado: #a688d6; /* Lila medio */
+  --palette-canela: #8157b8; /* Violeta principal */
+  --palette-cafe-profundo: #2a1b3d; /* Negro violáceo */
 
   --background: var(--palette-marfil);
   --foreground: var(--palette-cafe-profundo);
@@ -157,21 +159,21 @@
 
 .dark {
   /* Same 7 brand tones — only how they're assigned to surfaces changes */
-  --palette-marfil: #ede0d8;
-  --palette-crema: #e7c3a7;
-  --palette-miel: #dbaa84;
-  --palette-caramelo: #d09d78;
-  --palette-cafe-rosado: #b3846c;
-  --palette-canela: #a1755d;
-  --palette-cafe-profundo: #705241;
+  --palette-marfil: #f6f1fa;
+  --palette-crema: #e8dbf4;
+  --palette-miel: #d6c0ee;
+  --palette-caramelo: #c3a6e8;
+  --palette-cafe-rosado: #a688d6;
+  --palette-canela: #8157b8;
+  --palette-cafe-profundo: #2a1b3d;
 
-  --background: color-mix(in oklab, var(--palette-cafe-profundo) 68%, black);
+  --background: color-mix(in oklab, var(--palette-cafe-profundo) 40%, black);
   --foreground: var(--palette-marfil);
 
-  --surface: color-mix(in oklab, var(--palette-cafe-profundo) 76%, black);
+  --surface: color-mix(in oklab, var(--palette-cafe-profundo) 52%, black);
   --surface-foreground: var(--palette-marfil);
 
-  --card: color-mix(in oklab, var(--palette-cafe-profundo) 84%, black);
+  --card: color-mix(in oklab, var(--palette-cafe-profundo) 62%, black);
   --card-foreground: var(--palette-marfil);
 
   --popover: var(--card);
@@ -186,7 +188,7 @@
   --secondary: color-mix(in oklab, var(--palette-cafe-rosado) 55%, var(--palette-cafe-profundo));
   --secondary-foreground: var(--palette-marfil);
 
-  --muted: color-mix(in oklab, var(--palette-cafe-profundo) 76%, black);
+  --muted: color-mix(in oklab, var(--palette-cafe-profundo) 52%, black);
   --muted-foreground: color-mix(in oklab, var(--palette-crema) 65%, var(--palette-marfil));
 
   --accent: color-mix(in oklab, var(--palette-canela) 45%, var(--palette-cafe-profundo));
@@ -213,7 +215,7 @@
   --chart-5: var(--palette-canela);
   --chart-6: var(--palette-marfil);
 
-  --sidebar: color-mix(in oklab, var(--palette-cafe-profundo) 82%, black);
+  --sidebar: color-mix(in oklab, var(--palette-cafe-profundo) 34%, black);
   --sidebar-foreground: var(--palette-marfil);
   --sidebar-primary: var(--palette-caramelo);
   --sidebar-primary-foreground: var(--palette-cafe-profundo);
