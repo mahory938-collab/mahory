@@ -44,7 +44,7 @@ const productSchema = z.object({
   brand_id: z.string().nullable(),
   supplier_id: z.string().nullable(),
   cost: z.coerce.number().min(0, "Debe ser 0 o mayor"),
-  price: z.coerce.number().gt(0, "Escriba el precio de venta"),
+  price: z.coerce.number().min(0, "Debe ser 0 o mayor"),
   wholesale_price: z.coerce.number().min(0, "Debe ser 0 o mayor"),
   stock: z.coerce.number().min(0, "Debe ser 0 o mayor"),
   min_stock: z.coerce.number().min(0, "Debe ser 0 o mayor"),
@@ -273,7 +273,7 @@ export function ProductFormDialog({
               />
             </Field>
 
-            <Field label="Precio de venta" error={form.formState.errors.price?.message}>
+            <Field label="Precio de venta (opcional)" error={form.formState.errors.price?.message}>
               <Input
                 type="number"
                 inputMode="decimal"

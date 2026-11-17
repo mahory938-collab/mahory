@@ -506,7 +506,7 @@ export const registerDeviceProduct = createServerFn({ method: "POST" })
     const cost = Number(data.cost);
     const stock = Number(data.stock);
     const minStock = Number(data.minStock);
-    if (!Number.isFinite(price) || price <= 0) throw new Error("Escriba el precio de venta.");
+    if (!Number.isFinite(price) || price < 0) throw new Error("Revise el precio de venta.");
     if (![cost, stock, minStock].every((n) => Number.isFinite(n) && n >= 0)) {
       throw new Error("Revise el precio de compra y las cantidades.");
     }

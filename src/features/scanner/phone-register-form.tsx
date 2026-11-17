@@ -128,7 +128,7 @@ export function PhoneRegisterForm({
     return () => URL.revokeObjectURL(url);
   }, [photo]);
 
-  const canSave = name.trim().length >= 2 && Number(price) > 0 && !saving;
+  const canSave = name.trim().length >= 2 && !saving;
   const willAddToSale = mode === "ventas" && addToSale;
 
   const handleSave = async () => {
@@ -162,7 +162,7 @@ export function PhoneRegisterForm({
             barcode,
             name: name.trim(),
             cost: Number(cost) || 0,
-            price: Number(price),
+            price: Number(price) || 0,
             stock: Number(stock) || 0,
             minStock: Number(minStock) || 0,
             categoryId: categoryId || null,
@@ -229,7 +229,7 @@ export function PhoneRegisterForm({
         </div>
 
         <div>
-          <label className={labelClass}>Precio de venta</label>
+          <label className={labelClass}>Precio de venta (opcional)</label>
           <input
             className={inputClass}
             inputMode="numeric"

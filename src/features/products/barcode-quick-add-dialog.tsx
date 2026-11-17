@@ -79,8 +79,7 @@ export function BarcodeQuickAddDialog({
   const canSave =
     Boolean(barcode.trim()) &&
     Boolean(name.trim()) &&
-    !barcodeTaken &&
-    (Boolean(template) || Number(price) > 0);
+    !barcodeTaken;
 
   const suggestions = (
     name.trim().length > 0

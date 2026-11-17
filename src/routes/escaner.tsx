@@ -871,9 +871,15 @@ function ResultCard({
             )}
           </div>
         </div>
-        <p className="font-display text-5xl font-bold tracking-tight text-[#8157b8]">
-          {formatCurrency(product.price)}
-        </p>
+        {product.price > 0 ? (
+          <p className="font-display text-5xl font-bold tracking-tight text-[#8157b8]">
+            {formatCurrency(product.price)}
+          </p>
+        ) : (
+          <p className="font-display text-3xl font-bold tracking-tight text-amber-600">
+            Sin precio asignado
+          </p>
+        )}
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm">
             Existencias:{" "}
@@ -901,7 +907,9 @@ function ResultCard({
         )}
         <div className="min-w-0 flex-1">
           <p className="truncate text-base font-semibold">{card.result.product?.name}</p>
-          <p className="text-sm">{formatCurrency(card.result.product?.price)}</p>
+          <p className="text-sm">
+            {card.result.product?.price ? formatCurrency(card.result.product.price) : "Sin precio"}
+          </p>
           <p className="text-sm font-semibold text-emerald-600">
             {card.registered ? "Producto registrado" : "Producto agregado"}
             {card.addedToSale ? " · +1 a la venta" : ""}

@@ -191,6 +191,13 @@ function PosPage() {
         toast.error(`"${product.name}" no tiene stock disponible`, { description: `Escaneado con ${deviceName}` });
         return;
       }
+      if (product.price <= 0) {
+        playBeep("error");
+        toast.error(`"${product.name}" no tiene precio`, {
+          description: "Póngale precio en Productos para poder venderlo.",
+        });
+        return;
+      }
       addToCart(product);
       playBeep("ok");
       toast.success(`${product.name} agregado`, { description: `Escaneado con ${deviceName}`, duration: 2500 });
@@ -278,6 +285,12 @@ function PosPage() {
     }
     if (product.stock <= 0) {
       toast.error(`"${product.name}" no tiene stock disponible`);
+      return;
+    }
+    if (product.price <= 0) {
+      toast.error(`"${product.name}" no tiene precio`, {
+        description: "Póngale precio en Productos para poder venderlo.",
+      });
       return;
     }
     addToCart(product);
@@ -1288,15 +1301,17 @@ function ProductCard({
 }) {
   const code = product.barcode || product.sku;
   const outOfStock = product.stock <= 0;
+  const noPrice = product.price <= 0;
+  const blocked = outOfStock || noPrice;
   return (
     <button
       type="button"
-      disabled={outOfStock}
-      onClick={outOfStock ? undefined : onClick}
+      disabled={blocked}
+      onClick={blocked ? undefined : onClick}
       className={cn(
         "relative flex h-40 flex-col overflow-hidden rounded-2xl border bg-card text-left shadow-soft transition-all",
         "hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-card active:scale-[0.98]",
-        outOfStock && "cursor-not-allowed opacity-60 hover:translate-y-0 hover:border-border hover:shadow-soft active:scale-100",
+        blocked && "cursor-not-allowed opacity-60 hover:translate-y-0 hover:border-border hover:shadow-soft active:scale-100",
       )}
     >
       {promo && (
@@ -1323,8 +1338,13 @@ function ProductCard({
           )}
         </span>
         <span>
-          <span className="block truncate font-display text-base font-semibold text-primary">
-            {formatCurrency(product.price)}
+          <span
+            className={cn(
+              "block truncate font-display text-base font-semibold",
+              noPrice ? "text-amber-600" : "text-primary",
+            )}
+          >
+            {noPrice ? "Sin precio" : formatCurrency(product.price)}
           </span>
           {outOfStock ? (
             <span className="text-xs font-medium text-destructive">Sin stock</span>
