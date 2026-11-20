@@ -28,6 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { FEATURES } from "@/lib/plan";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/manual")({
@@ -78,8 +79,8 @@ const OPERACION: ModuleDef[] = [
     role: "all",
     steps: [
       "Vea las ventas de hoy, del mes y el ticket promedio en las tarjetas superiores.",
-      "Revise \"Inventario bajo\" para saber qué reponer.",
-      "Use \"Acciones rápidas\" para ir directo a vender o ajustar stock.",
+      'Revise "Inventario bajo" para saber qué reponer.',
+      'Use "Acciones rápidas" para ir directo a vender o ajustar stock.',
     ],
   },
   {
@@ -91,10 +92,10 @@ const OPERACION: ModuleDef[] = [
     steps: [
       "Busque o escanee el producto y toque la tarjeta para agregarlo.",
       "Los descuentos y promociones activas se aplican solos; puede editarlos si tiene permiso.",
-      "(Opcional) elija cliente registrado para venta a crédito, o active \"Domicilio\".",
-      "\"Cobrar\" y reparta el pago en uno o varios métodos.",
+      '(Opcional) elija cliente registrado para venta a crédito, o active "Domicilio".',
+      '"Cobrar" y reparta el pago en uno o varios métodos.',
     ],
-    note: "\"Ventas en espera\" guarda un carrito a medio armar y lo retoma después sin perderlo.",
+    note: '"Ventas en espera" guarda un carrito a medio armar y lo retoma después sin perderlo.',
   },
   {
     id: "ventas",
@@ -104,20 +105,23 @@ const OPERACION: ModuleDef[] = [
     role: "all",
     steps: [
       "Filtre por fecha, estado o busque por número de venta.",
-      "Toque una venta para ver el detalle completo e \"Imprimir recibo\".",
+      FEATURES.impresion
+        ? 'Toque una venta para ver el detalle completo e "Imprimir recibo".'
+        : "Toque una venta para ver el detalle completo.",
     ],
   },
   {
     id: "caja",
     title: "Caja",
     icon: Wallet,
-    purpose: "Abrir y cerrar el turno, y controlar el efectivo. La caja es una sola por tienda: la abre un usuario y queda abierta para todo el equipo, en cualquier equipo.",
+    purpose:
+      "Abrir y cerrar el turno, y controlar el efectivo. La caja es una sola por tienda: la abre un usuario y queda abierta para todo el equipo, en cualquier equipo.",
     role: "all",
     steps: [
-      "Al iniciar el día, ingrese la base inicial en \"Abrir caja\" (solo hace falta que un usuario la abra).",
-      "Registre ingresos o egresos con \"Registrar movimiento\".",
-      "Revise \"Ventas por método de pago\": efectivo, tarjeta, transferencia y crédito por separado.",
-      "Al terminar el día, \"Cerrar caja\" y cuente el efectivo físico contra lo esperado — cierra para todos.",
+      'Al iniciar el día, ingrese la base inicial en "Abrir caja" (solo hace falta que un usuario la abra).',
+      'Registre ingresos o egresos con "Registrar movimiento".',
+      'Revise "Ventas por método de pago": efectivo, tarjeta, transferencia y crédito por separado.',
+      'Al terminar el día, "Cerrar caja" y cuente el efectivo físico contra lo esperado — cierra para todos.',
     ],
   },
 ];
@@ -131,7 +135,7 @@ const CATALOGO: ModuleDef[] = [
     role: "all",
     roleLabel: "Ver: todos · Editar: Admin",
     steps: [
-      "\"Nuevo producto\" para crear uno, con foto y código de barras.",
+      '"Nuevo producto" para crear uno, con foto y código de barras.',
       "Defina precio, costo y stock mínimo para las alertas.",
       "Asigne categoría, marca y proveedor.",
     ],
@@ -143,7 +147,7 @@ const CATALOGO: ModuleDef[] = [
     purpose: "Descuentos automáticos que se aplican solos en el punto de venta.",
     role: "admin",
     steps: [
-      "\"Nueva promoción\" y elija a qué aplica: todos los productos, una categoría o un producto puntual.",
+      '"Nueva promoción" y elija a qué aplica: todos los productos, una categoría o un producto puntual.',
       "Defina el % de descuento y, si quiere, una vigencia (desde/hasta).",
       "Al vender, el producto muestra el descuento y se resta solo del total.",
     ],
@@ -156,7 +160,7 @@ const CATALOGO: ModuleDef[] = [
     role: "all",
     roleLabel: "Ver: todos · Ajustar: Admin",
     steps: [
-      "Filtre \"Bajo stock\" o \"Agotados\" para ver qué falta.",
+      'Filtre "Bajo stock" o "Agotados" para ver qué falta.',
       "Toque el ícono de reloj para ver el kardex: cada entrada y salida de ese producto.",
       "Admin: toque el producto para hacer un ajuste manual de stock.",
     ],
@@ -168,11 +172,11 @@ const CATALOGO: ModuleDef[] = [
     purpose: "Órdenes de compra a proveedores y recepción de mercancía.",
     role: "admin",
     steps: [
-      "\"Nueva compra\": elija proveedor y agregue productos con cantidad y costo.",
+      '"Nueva compra": elija proveedor y agregue productos con cantidad y costo.',
       "La compra queda en Borrador — el stock todavía no cambia.",
-      "Abra la compra y toque \"Recibir mercancía\" cuando llegue el pedido: ahí sí se suma el stock.",
+      'Abra la compra y toque "Recibir mercancía" cuando llegue el pedido: ahí sí se suma el stock.',
     ],
-    note: "El stock solo aumenta al \"Recibir mercancía\", nunca al crear la compra.",
+    note: 'El stock solo aumenta al "Recibir mercancía", nunca al crear la compra.',
   },
   {
     id: "clientes",
@@ -181,9 +185,9 @@ const CATALOGO: ModuleDef[] = [
     purpose: "Base de clientes, cupo de crédito y saldo pendiente.",
     role: "all",
     steps: [
-      "\"Nuevo cliente\" y asigne un cupo de crédito si va a fiarle.",
-      "\"Cupo disponible\" y \"Saldo pendiente\" se actualizan solos con cada venta a crédito.",
-      "Si el cliente debe, use el ícono de moneda para \"Registrar abono\".",
+      '"Nuevo cliente" y asigne un cupo de crédito si va a fiarle.',
+      '"Cupo disponible" y "Saldo pendiente" se actualizan solos con cada venta a crédito.',
+      'Si el cliente debe, use el ícono de moneda para "Registrar abono".',
     ],
   },
   {
@@ -193,7 +197,7 @@ const CATALOGO: ModuleDef[] = [
     purpose: "Datos de contacto para usar al crear una compra.",
     role: "admin",
     steps: [
-      "\"Nuevo proveedor\": nombre, contacto y datos fiscales.",
+      '"Nuevo proveedor": nombre, contacto y datos fiscales.',
       "Aparecerá disponible al crear una nueva compra.",
     ],
   },
@@ -209,7 +213,7 @@ const ADMINISTRACION: ModuleDef[] = [
     steps: [
       "Elija el rango: hoy, 7 días, este mes o todo.",
       "Vea ganancia, ticket promedio y ventas por método de pago.",
-      "\"Exportar CSV\" descarga los productos más vendidos para Excel.",
+      '"Exportar CSV" descarga los productos más vendidos para Excel.',
     ],
   },
   {
@@ -219,7 +223,7 @@ const ADMINISTRACION: ModuleDef[] = [
     purpose: "El equipo que tiene acceso al sistema y su rol.",
     role: "admin",
     steps: [
-      "\"Nuevo usuario\" para crear una cuenta de acceso.",
+      '"Nuevo usuario" para crear una cuenta de acceso.',
       "Cambie el rol entre Vendedor y Administrador desde la lista.",
       "El interruptor de estado activa o desactiva el acceso sin borrar al usuario.",
     ],
@@ -234,7 +238,7 @@ const ADMINISTRACION: ModuleDef[] = [
       "Complete nombre, NIT, dirección y el IVA por defecto de la tienda.",
       "Active o desactive los métodos de pago que acepta el punto de venta.",
       "Elija el ancho del papel térmico (58 o 80 mm) para el recibo.",
-      "\"Descargar respaldo\" guarda una copia en JSON de productos, clientes y proveedores.",
+      '"Descargar respaldo" guarda una copia en JSON de productos, clientes y proveedores.',
     ],
   },
 ];
@@ -246,7 +250,7 @@ function ManualPage() {
         <Card className="overflow-hidden rounded-2xl shadow-soft">
           <CardHeader className="flex-row items-center justify-between gap-3 border-b pb-3">
             <div>
-              <CardTitle className="text-base">Cobertura del Plan Pro contratado</CardTitle>
+              <CardTitle className="text-base">Cobertura del plan contratado</CardTitle>
               <p className="mt-0.5 text-sm text-muted-foreground">
                 Cada punto incluido en el plan y el módulo donde se cumple.
               </p>
@@ -261,21 +265,23 @@ function ManualPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {COVERAGE.map((row) => (
-                <TableRow key={row.item}>
-                  <TableCell className="font-medium">{row.item}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{row.where}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="secondary"
-                      className="gap-1 rounded-full bg-success/15 text-success"
-                    >
-                      <CheckCircle2 className="size-3" />
-                      Incluido
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {COVERAGE.filter((row) => FEATURES.caja || row.item !== "Movimientos de caja").map(
+                (row) => (
+                  <TableRow key={row.item}>
+                    <TableCell className="font-medium">{row.item}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{row.where}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="secondary"
+                        className="gap-1 rounded-full bg-success/15 text-success"
+                      >
+                        <CheckCircle2 className="size-3" />
+                        Incluido
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ),
+              )}
             </TableBody>
           </Table>
         </Card>
@@ -316,9 +322,11 @@ function ModuleGroup({
         <p className="text-sm text-muted-foreground">{subtitle}</p>
       </div>
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {modules.map((mod) => (
-          <ModuleCard key={mod.id} mod={mod} />
-        ))}
+        {modules
+          .filter((mod) => FEATURES.caja || mod.id !== "caja")
+          .map((mod) => (
+            <ModuleCard key={mod.id} mod={mod} />
+          ))}
       </div>
     </section>
   );

@@ -6,6 +6,8 @@ export type CartLine = {
   name: string;
   barcode: string | null;
   unitPrice: number;
+  /** Precio que tenía el producto en el catálogo al agregarlo (0 = sin precio). */
+  catalogPrice: number;
   unitCost: number;
   taxRate: number;
   quantity: number;
@@ -36,8 +38,7 @@ export type CartProductInput = {
 
 export type CartPromoInput = { percent: number; label: string };
 
-const lineTotal = (line: CartLine) =>
-  Math.max(0, line.unitPrice * line.quantity - line.discount);
+const lineTotal = (line: CartLine) => Math.max(0, line.unitPrice * line.quantity - line.discount);
 
 const promoDiscount = (unitPrice: number, quantity: number, percent: number) =>
   Math.round((unitPrice * quantity * percent) / 100);
@@ -76,6 +77,7 @@ export function useCart() {
             name: product.name,
             barcode: product.barcode,
             unitPrice,
+            catalogPrice: unitPrice,
             unitCost: Number(product.cost),
             taxRate: Number(product.tax_rate),
             quantity,
@@ -91,9 +93,7 @@ export function useCart() {
   );
 
   const updateLine = useCallback((key: string, patch: Partial<CartLine>) => {
-    setLines((current) =>
-      current.map((line) => (line.key === key ? { ...line, ...patch } : line)),
-    );
+    setLines((current) => current.map((line) => (line.key === key ? { ...line, ...patch } : line)));
   }, []);
 
   const setQuantity = useCallback((key: string, quantity: number) => {

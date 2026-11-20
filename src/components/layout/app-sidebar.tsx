@@ -30,6 +30,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
+import { FEATURES } from "@/lib/plan";
 import { ROLE_LABELS, type Permission } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 
@@ -47,7 +48,9 @@ const MAIN: NavItem[] = [
   { title: "Ventas", url: "/ventas", icon: ArrowLeftRight, permission: "pos.use" },
   { title: "Productos", url: "/productos", icon: Package, permission: "products.view" },
   { title: "Inventario", url: "/inventario", icon: Boxes, permission: "inventory.view" },
-  { title: "Caja", url: "/caja", icon: Wallet, permission: "cash.use" },
+  ...(FEATURES.caja
+    ? [{ title: "Caja", url: "/caja", icon: Wallet, permission: "cash.use" } as NavItem]
+    : []),
   { title: "Gastos", url: "/gastos", icon: Receipt, permission: "expenses.manage" },
 ];
 

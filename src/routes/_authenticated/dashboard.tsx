@@ -37,6 +37,7 @@ import { useDashboardData } from "@/features/dashboard/use-dashboard-data";
 import { useAuth } from "@/hooks/use-auth";
 import { formatCurrency, formatDateTime, formatNumber } from "@/lib/format";
 import { roleHasPermission } from "@/lib/permissions";
+import { FEATURES } from "@/lib/plan";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -101,7 +102,7 @@ function DashboardPage() {
           </Button>
           <QuickAction to="/productos" icon={Plus} label="Agregar producto" />
           <QuickAction to="/inventario" icon={Boxes} label="Ajustar inventario" />
-          <QuickAction to="/caja" icon={Wallet} label="Movimiento de caja" />
+          {FEATURES.caja && <QuickAction to="/caja" icon={Wallet} label="Movimiento de caja" />}
         </div>
 
         {/* Lo más importante de hoy */}
@@ -117,7 +118,7 @@ function DashboardPage() {
           <KpiCard
             label="Gastado hoy"
             value={formatCurrency(spentToday)}
-            hint="Gastos del día más egresos de caja"
+            hint={FEATURES.caja ? "Gastos del día más egresos de caja" : "Gastos registrados hoy"}
             icon={ArrowDownCircle}
             loading={isLoading}
           />
@@ -183,80 +184,84 @@ function DashboardPage() {
 
           <div className="space-y-4">
             {/* Cash summary */}
-            <Card className="rounded-2xl shadow-soft">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Resumen de caja</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 pt-0">
-                {isLoading ? (
-                  <Skeleton className="h-20 rounded-xl" />
-                ) : data?.cash ? (
-                  <>
-                    <div className="flex items-center justify-between rounded-xl bg-surface px-3 py-2.5 text-sm">
-                      <span className="text-muted-foreground">Base inicial</span>
-                      <span className="font-medium">{formatCurrency(data.cash.opening)}</span>
+            {FEATURES.caja && (
+              <Card className="rounded-2xl shadow-soft">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Resumen de caja</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 pt-0">
+                  {isLoading ? (
+                    <Skeleton className="h-20 rounded-xl" />
+                  ) : data?.cash ? (
+                    <>
+                      <div className="flex items-center justify-between rounded-xl bg-surface px-3 py-2.5 text-sm">
+                        <span className="text-muted-foreground">Base inicial</span>
+                        <span className="font-medium">{formatCurrency(data.cash.opening)}</span>
+                      </div>
+                      <div className="flex items-center justify-between rounded-xl bg-surface px-3 py-2.5 text-sm">
+                        <span className="text-muted-foreground">Esperado en caja</span>
+                        <span className="font-medium">{formatCurrency(data.cash.expected)}</span>
+                      </div>
+                      <Badge className="rounded-full">Caja abierta</Badge>
+                    </>
+                  ) : (
+                    <div className="space-y-3">
+                      <p className="text-sm text-muted-foreground">No tiene una caja abierta.</p>
+                      <Button asChild variant="outline" className="w-full rounded-xl">
+                        <Link to="/caja">
+                          <Wallet className="mr-2 size-4" />
+                          Abrir caja
+                        </Link>
+                      </Button>
                     </div>
-                    <div className="flex items-center justify-between rounded-xl bg-surface px-3 py-2.5 text-sm">
-                      <span className="text-muted-foreground">Esperado en caja</span>
-                      <span className="font-medium">{formatCurrency(data.cash.expected)}</span>
-                    </div>
-                    <Badge className="rounded-full">Caja abierta</Badge>
-                  </>
-                ) : (
-                  <div className="space-y-3">
-                    <p className="text-sm text-muted-foreground">No tiene una caja abierta.</p>
-                    <Button asChild variant="outline" className="w-full rounded-xl">
-                      <Link to="/caja">
-                        <Wallet className="mr-2 size-4" />
-                        Abrir caja
-                      </Link>
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Cash movements today (separate from product sales revenue) */}
-            <Card className="rounded-2xl shadow-soft">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Movimientos de caja de hoy</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 pt-0">
-                {isLoading ? (
-                  <Skeleton className="h-24 rounded-xl" />
-                ) : (
-                  <>
-                    <div className="flex items-center justify-between rounded-xl bg-surface px-3 py-2.5 text-sm">
-                      <span className="flex items-center gap-2 text-muted-foreground">
-                        <HandCoins className="size-3.5 text-success" />
-                        Abonos de clientes
-                      </span>
-                      <span className="font-medium text-success">
-                        +{formatCurrency(data?.cashMovementsToday.abonos)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-xl bg-surface px-3 py-2.5 text-sm">
-                      <span className="flex items-center gap-2 text-muted-foreground">
-                        <ArrowUpCircle className="size-3.5 text-success" />
-                        Ingresos
-                      </span>
-                      <span className="font-medium text-success">
-                        +{formatCurrency(data?.cashMovementsToday.ingresos)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-xl bg-surface px-3 py-2.5 text-sm">
-                      <span className="flex items-center gap-2 text-muted-foreground">
-                        <ArrowDownCircle className="size-3.5 text-destructive" />
-                        Egresos
-                      </span>
-                      <span className="font-medium text-destructive">
-                        -{formatCurrency(data?.cashMovementsToday.egresos)}
-                      </span>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+            {FEATURES.caja && (
+              <Card className="rounded-2xl shadow-soft">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Movimientos de caja de hoy</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 pt-0">
+                  {isLoading ? (
+                    <Skeleton className="h-24 rounded-xl" />
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between rounded-xl bg-surface px-3 py-2.5 text-sm">
+                        <span className="flex items-center gap-2 text-muted-foreground">
+                          <HandCoins className="size-3.5 text-success" />
+                          Abonos de clientes
+                        </span>
+                        <span className="font-medium text-success">
+                          +{formatCurrency(data?.cashMovementsToday.abonos)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between rounded-xl bg-surface px-3 py-2.5 text-sm">
+                        <span className="flex items-center gap-2 text-muted-foreground">
+                          <ArrowUpCircle className="size-3.5 text-success" />
+                          Ingresos
+                        </span>
+                        <span className="font-medium text-success">
+                          +{formatCurrency(data?.cashMovementsToday.ingresos)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between rounded-xl bg-surface px-3 py-2.5 text-sm">
+                        <span className="flex items-center gap-2 text-muted-foreground">
+                          <ArrowDownCircle className="size-3.5 text-destructive" />
+                          Egresos
+                        </span>
+                        <span className="font-medium text-destructive">
+                          -{formatCurrency(data?.cashMovementsToday.egresos)}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Low stock */}
             <Card className="rounded-2xl shadow-soft">
@@ -338,110 +343,121 @@ function DashboardPage() {
               />
             </div>
 
-        {/* Charts */}
-        <div className="grid gap-4 xl:grid-cols-3">
-          <Card className="rounded-2xl shadow-soft xl:col-span-2">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Ventas de los últimos 14 días</CardTitle>
-            </CardHeader>
-            <CardContent className="h-72">
-              {isLoading ? (
-                <Skeleton className="size-full rounded-xl" />
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={data?.salesByDay ?? []}>
-                    <defs>
-                      <linearGradient id="salesFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="var(--color-chart-1)" stopOpacity={0.35} />
-                        <stop offset="100%" stopColor="var(--color-chart-1)" stopOpacity={0.02} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
-                    <XAxis
-                      dataKey="label"
-                      tickLine={false}
-                      axisLine={false}
-                      fontSize={11}
-                      stroke="var(--color-muted-foreground)"
-                    />
-                    <YAxis
-                      tickFormatter={(v: number) => `${Math.round(v / 1000)}k`}
-                      tickLine={false}
-                      axisLine={false}
-                      fontSize={11}
-                      width={44}
-                      stroke="var(--color-muted-foreground)"
-                    />
-                    <Tooltip
-                      formatter={(v) => formatCurrency(Number(v))}
-                      contentStyle={{
-                        borderRadius: 12,
-                        border: "1px solid var(--color-border)",
-                        background: "var(--color-card)",
-                        color: "var(--color-card-foreground)",
-                        fontSize: 12,
-                      }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="total"
-                      name="Ventas"
-                      stroke="var(--color-chart-1)"
-                      strokeWidth={2.5}
-                      fill="url(#salesFill)"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
+            {/* Charts */}
+            <div className="grid gap-4 xl:grid-cols-3">
+              <Card className="rounded-2xl shadow-soft xl:col-span-2">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Ventas de los últimos 14 días</CardTitle>
+                </CardHeader>
+                <CardContent className="h-72">
+                  {isLoading ? (
+                    <Skeleton className="size-full rounded-xl" />
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={data?.salesByDay ?? []}>
+                        <defs>
+                          <linearGradient id="salesFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="var(--color-chart-1)" stopOpacity={0.35} />
+                            <stop
+                              offset="100%"
+                              stopColor="var(--color-chart-1)"
+                              stopOpacity={0.02}
+                            />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          stroke="var(--color-border)"
+                          vertical={false}
+                        />
+                        <XAxis
+                          dataKey="label"
+                          tickLine={false}
+                          axisLine={false}
+                          fontSize={11}
+                          stroke="var(--color-muted-foreground)"
+                        />
+                        <YAxis
+                          tickFormatter={(v: number) => `${Math.round(v / 1000)}k`}
+                          tickLine={false}
+                          axisLine={false}
+                          fontSize={11}
+                          width={44}
+                          stroke="var(--color-muted-foreground)"
+                        />
+                        <Tooltip
+                          formatter={(v) => formatCurrency(Number(v))}
+                          contentStyle={{
+                            borderRadius: 12,
+                            border: "1px solid var(--color-border)",
+                            background: "var(--color-card)",
+                            color: "var(--color-card-foreground)",
+                            fontSize: 12,
+                          }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="total"
+                          name="Ventas"
+                          stroke="var(--color-chart-1)"
+                          strokeWidth={2.5}
+                          fill="url(#salesFill)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
 
-          <Card className="rounded-2xl shadow-soft">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Productos más vendidos</CardTitle>
-            </CardHeader>
-            <CardContent className="h-72">
-              {isLoading ? (
-                <Skeleton className="size-full rounded-xl" />
-              ) : (data?.topProducts.length ?? 0) === 0 ? (
-                <EmptyState text="Aún no hay ventas registradas este mes." />
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={data?.topProducts ?? []} layout="vertical" margin={{ left: 8 }}>
-                    <XAxis type="number" hide />
-                    <YAxis
-                      type="category"
-                      dataKey="name"
-                      width={110}
-                      tickLine={false}
-                      axisLine={false}
-                      fontSize={11}
-                      stroke="var(--color-muted-foreground)"
-                    />
-                    <Tooltip
-                      formatter={(v) => `${formatNumber(Number(v))} und.`}
-                      contentStyle={{
-                        borderRadius: 12,
-                        border: "1px solid var(--color-border)",
-                        background: "var(--color-card)",
-                        color: "var(--color-card-foreground)",
-                        fontSize: 12,
-                      }}
-                    />
-                    <Bar
-                      dataKey="quantity"
-                      name="Cantidad"
-                      fill="var(--color-chart-1)"
-                      radius={[0, 8, 8, 0]}
-                      barSize={18}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
+              <Card className="rounded-2xl shadow-soft">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Productos más vendidos</CardTitle>
+                </CardHeader>
+                <CardContent className="h-72">
+                  {isLoading ? (
+                    <Skeleton className="size-full rounded-xl" />
+                  ) : (data?.topProducts.length ?? 0) === 0 ? (
+                    <EmptyState text="Aún no hay ventas registradas este mes." />
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={data?.topProducts ?? []}
+                        layout="vertical"
+                        margin={{ left: 8 }}
+                      >
+                        <XAxis type="number" hide />
+                        <YAxis
+                          type="category"
+                          dataKey="name"
+                          width={110}
+                          tickLine={false}
+                          axisLine={false}
+                          fontSize={11}
+                          stroke="var(--color-muted-foreground)"
+                        />
+                        <Tooltip
+                          formatter={(v) => `${formatNumber(Number(v))} und.`}
+                          contentStyle={{
+                            borderRadius: 12,
+                            border: "1px solid var(--color-border)",
+                            background: "var(--color-card)",
+                            color: "var(--color-card-foreground)",
+                            fontSize: 12,
+                          }}
+                        />
+                        <Bar
+                          dataKey="quantity"
+                          name="Cantidad"
+                          fill="var(--color-chart-1)"
+                          radius={[0, 8, 8, 0]}
+                          barSize={18}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </div>
         )}
       </div>
@@ -477,7 +493,9 @@ function KpiCard({
             }
           >
             <Icon
-              className={tone === "primary" ? "size-4 text-primary-foreground" : "size-4 text-primary"}
+              className={
+                tone === "primary" ? "size-4 text-primary-foreground" : "size-4 text-primary"
+              }
             />
           </div>
         </div>

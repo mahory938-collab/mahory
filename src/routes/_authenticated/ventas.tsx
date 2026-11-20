@@ -36,6 +36,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { printReceipt } from "@/features/sales/print-receipt";
+import { FEATURES } from "@/lib/plan";
 import { ReturnItemsDialog } from "@/features/sales/return-items-dialog";
 import type { SalesFilters, SalesRange, SaleStatus } from "@/features/sales/use-sales";
 import {
@@ -425,14 +426,16 @@ function SaleDetailDialog({
             </div>
 
             <div className="flex flex-wrap gap-2 pt-1">
-              <Button
-                variant="outline"
-                className="gap-2 rounded-xl"
-                onClick={() => printReceipt(store, sale, receiptSettings?.widthMm)}
-              >
-                <Printer className="size-4" />
-                Imprimir recibo
-              </Button>
+              {FEATURES.impresion && (
+                <Button
+                  variant="outline"
+                  className="gap-2 rounded-xl"
+                  onClick={() => printReceipt(store, sale, receiptSettings?.widthMm)}
+                >
+                  <Printer className="size-4" />
+                  Imprimir recibo
+                </Button>
+              )}
               {canVoid && (sale.status === "completada" || sale.status === "credito") && hasReturnableUnits && (
                 <Button
                   variant="outline"

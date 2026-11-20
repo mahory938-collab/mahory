@@ -19,6 +19,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { FEATURES } from "@/lib/plan";
 
 const DESTINATIONS = [
   { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
@@ -54,7 +55,7 @@ export function GlobalSearch({ trigger }: { trigger: ReactNode }) {
         <CommandList>
           <CommandEmpty>Sin resultados.</CommandEmpty>
           <CommandGroup heading="Ir a">
-            {DESTINATIONS.map((d) => (
+            {DESTINATIONS.filter((d) => FEATURES.caja || d.to !== "/caja").map((d) => (
               <CommandItem
                 key={d.to}
                 value={d.label}

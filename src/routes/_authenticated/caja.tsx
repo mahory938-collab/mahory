@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { ArrowDownCircle, ArrowUpCircle, Loader2, Wallet } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -28,6 +28,7 @@ import {
   useOpenCash,
 } from "@/features/cash/use-cash";
 import { printCashClose } from "@/features/cash/print-cash-close";
+import { FEATURES } from "@/lib/plan";
 import { useReceiptSettings } from "@/features/settings/use-settings";
 import { useStoreInfo } from "@/features/sales/use-store-info";
 import { useAuth } from "@/hooks/use-auth";
@@ -35,6 +36,9 @@ import { formatCurrency, formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/caja")({
+  beforeLoad: () => {
+    if (!FEATURES.caja) throw redirect({ to: "/dashboard" });
+  },
   head: () => ({
     meta: [
       { title: "Caja — Mahory" },

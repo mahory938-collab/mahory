@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useActiveCashSession } from "@/features/cash/use-cash";
+import { FEATURES } from "@/lib/plan";
 import type { Customer, PaymentMethod } from "@/features/customers/use-customers";
 import { useRegisterCustomerPayment } from "@/features/customers/use-customers";
 import { formatCurrency } from "@/lib/format";
@@ -127,7 +128,7 @@ export function RegisterPaymentDialog({
                   ))}
                 </SelectContent>
               </Select>
-              {method === "efectivo" && !activeCashSession && (
+              {FEATURES.caja && method === "efectivo" && !activeCashSession && (
                 <p className="text-xs text-muted-foreground">
                   No tiene caja abierta — este abono no se sumará al efectivo esperado.
                 </p>

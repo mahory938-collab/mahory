@@ -80,6 +80,7 @@ import { playBeep } from "@/lib/beep";
 import type { Promotion } from "@/features/promotions/use-promotions";
 import { findBestPromotion, usePromotions } from "@/features/promotions/use-promotions";
 import { printReceipt } from "@/features/sales/print-receipt";
+import { FEATURES } from "@/lib/plan";
 import type { SaleDetail } from "@/features/sales/use-sales";
 import { useStoreInfo } from "@/features/sales/use-store-info";
 import { usePaymentMethodSettings, useReceiptSettings } from "@/features/settings/use-settings";
@@ -160,11 +161,7 @@ function PosPage() {
 
   const addToCart = (product: NonNullable<typeof products>[number]) => {
     const promo = findBestPromotion(promotions ?? [], product);
-    cart.addProduct(
-      product,
-      1,
-      promo ? { percent: promo.percent, label: promo.name } : undefined,
-    );
+    cart.addProduct(product, 1, promo ? { percent: promo.percent, label: promo.name } : undefined);
   };
 
   // Escaneos que llegan del celular: se comportan igual que agregar el producto a mano.
@@ -183,24 +180,24 @@ function PosPage() {
       const product = await findProductById(event.product_id);
       if (!product) {
         playBeep("error");
-        toast.error("Ese producto ya no está disponible", { description: event.product_name ?? event.barcode });
+        toast.error("Ese producto ya no está disponible", {
+          description: event.product_name ?? event.barcode,
+        });
         return;
       }
       if (product.stock <= 0) {
         playBeep("error");
-        toast.error(`"${product.name}" no tiene stock disponible`, { description: `Escaneado con ${deviceName}` });
-        return;
-      }
-      if (product.price <= 0) {
-        playBeep("error");
-        toast.error(`"${product.name}" no tiene precio`, {
-          description: "Póngale precio en Productos para poder venderlo.",
+        toast.error(`"${product.name}" no tiene stock disponible`, {
+          description: `Escaneado con ${deviceName}`,
         });
         return;
       }
       addToCart(product);
       playBeep("ok");
-      toast.success(`${product.name} agregado`, { description: `Escaneado con ${deviceName}`, duration: 2500 });
+      toast.success(`${product.name} agregado`, {
+        description: `Escaneado con ${deviceName}`,
+        duration: 2500,
+      });
     } catch {
       playBeep("error");
       toast.error("No se pudo agregar el producto escaneado. Revise la conexión.");
@@ -225,7 +222,8 @@ function PosPage() {
   const { data: store } = useStoreInfo();
   const { data: paymentMethodSettings } = usePaymentMethodSettings();
   const { data: receiptSettings } = useReceiptSettings();
-  const canSell = !cashLoading && Boolean(activeCashSession);
+  // Sin el módulo de caja no se exige turno abierto para vender.
+  const canSell = FEATURES.caja ? !cashLoading && Boolean(activeCashSession) : true;
   const canEditPrice = roleHasPermission(role, "pos.edit_price");
   const canDiscount = roleHasPermission(role, "pos.discount");
 
@@ -274,7 +272,9 @@ function PosPage() {
     setPaymentLines((current) => [...current, newPaymentLine({ amount: pendingAmount })]);
   };
   const removePaymentLine = (key: string) => {
-    setPaymentLines((current) => (current.length > 1 ? current.filter((l) => l.key !== key) : current));
+    setPaymentLines((current) =>
+      current.length > 1 ? current.filter((l) => l.key !== key) : current,
+    );
   };
 
   const scan = async (code: string) => {
@@ -287,12 +287,6 @@ function PosPage() {
       toast.error(`"${product.name}" no tiene stock disponible`);
       return;
     }
-    if (product.price <= 0) {
-      toast.error(`"${product.name}" no tiene precio`, {
-        description: "Póngale precio en Productos para poder venderlo.",
-      });
-      return;
-    }
     addToCart(product);
     setSearch("");
   };
@@ -300,7 +294,9 @@ function PosPage() {
   const checkout = useMutation({
     mutationFn: async () => {
       if (!cart.lines.length) throw new Error("El carrito está vacío");
-      if (!activeCashSession) throw new Error("Debe abrir caja antes de registrar una venta");
+      if (FEATURES.caja && !activeCashSession) {
+        throw new Error("Debe abrir caja antes de registrar una venta");
+      }
       if (totalPaid < cart.totals.total) throw new Error("El pago no cubre el total de la venta");
       if (deliveryType === "domicilio" && !deliveryAddress.trim()) {
         throw new Error("Ingrese la dirección de entrega");
@@ -348,7 +344,7 @@ function PosPage() {
         .from("sales")
         .insert({
           cashier_id: authUser.id,
-          cash_session_id: activeCashSession.id,
+          cash_session_id: activeCashSession?.id ?? null,
           customer_id: customer.id,
           customer_name: customer.name.trim() || null,
           delivery_type: deliveryType,
@@ -556,9 +552,14 @@ function PosPage() {
         .eq("sale_id", heldSaleId);
       if (itemsError) throw itemsError;
 
-      const productIds = [...new Set((items ?? []).map((i) => i.product_id).filter(Boolean))] as string[];
+      const productIds = [
+        ...new Set((items ?? []).map((i) => i.product_id).filter(Boolean)),
+      ] as string[];
       const { data: freshProducts, error: productsError } = productIds.length
-        ? await supabase.from("products").select("id, cost, tax_rate, stock").in("id", productIds)
+        ? await supabase
+            .from("products")
+            .select("id, price, cost, tax_rate, stock")
+            .in("id", productIds)
         : { data: [], error: null };
       if (productsError) throw productsError;
       const productMap = new Map((freshProducts ?? []).map((p) => [p.id, p]));
@@ -583,6 +584,7 @@ function PosPage() {
           name: item.product_name,
           barcode: item.barcode,
           unitPrice: Number(item.unit_price),
+          catalogPrice: product ? Number(product.price) : Number(item.unit_price),
           unitCost: product ? Number(product.cost) : 0,
           taxRate: product ? Number(product.tax_rate) : 0,
           quantity: Number(item.quantity),
@@ -623,11 +625,7 @@ function PosPage() {
               />
             </div>
             {search && (
-              <Button
-                variant="outline"
-                className="h-12 rounded-xl"
-                onClick={() => setSearch("")}
-              >
+              <Button variant="outline" className="h-12 rounded-xl" onClick={() => setSearch("")}>
                 <X className="size-4" />
               </Button>
             )}
@@ -707,7 +705,7 @@ function PosPage() {
             </Popover>
           </div>
 
-          {!cashLoading && !activeCashSession && (
+          {FEATURES.caja && !cashLoading && !activeCashSession && (
             <Alert variant="destructive" className="mx-3 mt-3 flex items-center gap-3 rounded-xl">
               <AlertDescription className="flex flex-1 items-center justify-between gap-3 pl-0">
                 <span>Debe abrir caja para poder registrar ventas.</span>
@@ -732,6 +730,18 @@ function PosPage() {
               )}
 
               {productGroups.map((group) => {
+                const [only] = group;
+                // Una sola presentación: no hay nada que elegir, se agrega al carrito de una vez.
+                if (group.length === 1 && only) {
+                  return (
+                    <ProductCard
+                      key={only.id}
+                      product={only}
+                      promo={findBestPromotion(promotions ?? [], only)}
+                      onClick={() => addToCart(only)}
+                    />
+                  );
+                }
                 const key = group[0].name.trim().toLowerCase();
                 const expanded = expandedGroupKey === key;
                 return (
@@ -908,7 +918,7 @@ function PosPage() {
                           <Plus className="size-3.5" />
                         </Button>
                       </div>
-                      {canEditPrice ? (
+                      {canEditPrice || line.catalogPrice <= 0 ? (
                         <Input
                           value={String(line.unitPrice)}
                           onChange={(event) =>
@@ -1051,14 +1061,16 @@ function PosPage() {
                   </p>
                 </div>
 
-                <Button
-                  variant="outline"
-                  className="h-12 w-full gap-2 rounded-xl"
-                  onClick={() => printReceipt(store, completedSale, receiptSettings?.widthMm)}
-                >
-                  <Printer className="size-4" />
-                  Imprimir recibo
-                </Button>
+                {FEATURES.impresion && (
+                  <Button
+                    variant="outline"
+                    className="h-12 w-full gap-2 rounded-xl"
+                    onClick={() => printReceipt(store, completedSale, receiptSettings?.widthMm)}
+                  >
+                    <Printer className="size-4" />
+                    Imprimir recibo
+                  </Button>
+                )}
               </div>
 
               <DialogFooter>
@@ -1177,9 +1189,7 @@ function PosPage() {
                   {pendingAmount > 0 && (
                     <Row label="Saldo pendiente" value={formatCurrency(pendingAmount)} />
                   )}
-                  {changeAmount > 0 && (
-                    <Row label="Cambio" value={formatCurrency(changeAmount)} />
-                  )}
+                  {changeAmount > 0 && <Row label="Cambio" value={formatCurrency(changeAmount)} />}
                 </div>
               </div>
 
@@ -1302,7 +1312,7 @@ function ProductCard({
   const code = product.barcode || product.sku;
   const outOfStock = product.stock <= 0;
   const noPrice = product.price <= 0;
-  const blocked = outOfStock || noPrice;
+  const blocked = outOfStock;
   return (
     <button
       type="button"
@@ -1311,7 +1321,8 @@ function ProductCard({
       className={cn(
         "relative flex h-40 flex-col overflow-hidden rounded-2xl border bg-card text-left shadow-soft transition-all",
         "hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-card active:scale-[0.98]",
-        blocked && "cursor-not-allowed opacity-60 hover:translate-y-0 hover:border-border hover:shadow-soft active:scale-100",
+        blocked &&
+          "cursor-not-allowed opacity-60 hover:translate-y-0 hover:border-border hover:shadow-soft active:scale-100",
       )}
     >
       {promo && (
@@ -1332,9 +1343,7 @@ function ProductCard({
         <span className="min-w-0">
           <span className="line-clamp-1 text-sm font-medium leading-snug">{product.name}</span>
           {code && (
-            <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
-              {code}
-            </span>
+            <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">{code}</span>
           )}
         </span>
         <span>

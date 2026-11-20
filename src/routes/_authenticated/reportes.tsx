@@ -53,6 +53,7 @@ import {
 } from "@/features/reports/use-reports";
 import { downloadCsv } from "@/lib/csv";
 import { formatCurrency, formatDateTime, formatNumber } from "@/lib/format";
+import { FEATURES } from "@/lib/plan";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/reportes")({
@@ -253,7 +254,11 @@ function ReportesPage() {
                         <stop offset="100%" stopColor="var(--color-chart-1)" stopOpacity={0.02} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="var(--color-border)"
+                      vertical={false}
+                    />
                     <XAxis
                       dataKey="label"
                       tickLine={false}
@@ -326,43 +331,45 @@ function ReportesPage() {
         </div>
 
         {/* Cash movements — separate from product sales revenue */}
-        <Card className="rounded-2xl shadow-soft">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">
-              Movimientos de caja · {RANGE_LABELS[range]}
-            </CardTitle>
-            <p className="text-xs text-muted-foreground">
-              Abonos de clientes, ingresos y egresos manuales — no forman parte del total de
-              ventas de arriba.
-            </p>
-          </CardHeader>
-          <CardContent className="pt-0">
-            {cashMovementsLoading ? (
-              <Skeleton className="h-16 rounded-xl" />
-            ) : (
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-xl bg-surface p-3">
-                  <p className="text-xs text-muted-foreground">Abonos de clientes</p>
-                  <p className="mt-1 font-display text-lg font-semibold text-success">
-                    +{formatCurrency(cashMovements?.abonos)}
-                  </p>
+        {FEATURES.caja && (
+          <Card className="rounded-2xl shadow-soft">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">
+                Movimientos de caja · {RANGE_LABELS[range]}
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Abonos de clientes, ingresos y egresos manuales — no forman parte del total de
+                ventas de arriba.
+              </p>
+            </CardHeader>
+            <CardContent className="pt-0">
+              {cashMovementsLoading ? (
+                <Skeleton className="h-16 rounded-xl" />
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-xl bg-surface p-3">
+                    <p className="text-xs text-muted-foreground">Abonos de clientes</p>
+                    <p className="mt-1 font-display text-lg font-semibold text-success">
+                      +{formatCurrency(cashMovements?.abonos)}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-surface p-3">
+                    <p className="text-xs text-muted-foreground">Ingresos</p>
+                    <p className="mt-1 font-display text-lg font-semibold text-success">
+                      +{formatCurrency(cashMovements?.ingresos)}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-surface p-3">
+                    <p className="text-xs text-muted-foreground">Egresos</p>
+                    <p className="mt-1 font-display text-lg font-semibold text-destructive">
+                      -{formatCurrency(cashMovements?.egresos)}
+                    </p>
+                  </div>
                 </div>
-                <div className="rounded-xl bg-surface p-3">
-                  <p className="text-xs text-muted-foreground">Ingresos</p>
-                  <p className="mt-1 font-display text-lg font-semibold text-success">
-                    +{formatCurrency(cashMovements?.ingresos)}
-                  </p>
-                </div>
-                <div className="rounded-xl bg-surface p-3">
-                  <p className="text-xs text-muted-foreground">Egresos</p>
-                  <p className="mt-1 font-display text-lg font-semibold text-destructive">
-                    -{formatCurrency(cashMovements?.egresos)}
-                  </p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Top products + customers */}
         <div className="grid gap-4 xl:grid-cols-2">
@@ -389,7 +396,10 @@ function ReportesPage() {
                   ))}
                 {!salesLoading && sales?.topProducts.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={3} className="py-10 text-center text-sm text-muted-foreground">
+                    <TableCell
+                      colSpan={3}
+                      className="py-10 text-center text-sm text-muted-foreground"
+                    >
                       Sin datos en este rango.
                     </TableCell>
                   </TableRow>
@@ -428,7 +438,10 @@ function ReportesPage() {
                   ))}
                 {!salesLoading && sales?.topCustomers.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={3} className="py-10 text-center text-sm text-muted-foreground">
+                    <TableCell
+                      colSpan={3}
+                      className="py-10 text-center text-sm text-muted-foreground"
+                    >
                       Sin datos en este rango.
                     </TableCell>
                   </TableRow>
@@ -446,72 +459,83 @@ function ReportesPage() {
         </div>
 
         {/* Cash sessions */}
-        <Card className="overflow-hidden rounded-2xl shadow-soft">
-          <CardHeader className="flex-row items-center gap-2 pb-2">
-            <Wallet className="size-4 text-primary" />
-            <CardTitle className="text-base">Cierres de caja</CardTitle>
-          </CardHeader>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Cierre</TableHead>
-                <TableHead className="text-right">Base</TableHead>
-                <TableHead className="text-right">Esperado</TableHead>
-                <TableHead className="text-right">Contado</TableHead>
-                <TableHead>Diferencia</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {cashLoading &&
-                [0, 1].map((i) => (
-                  <TableRow key={i}>
-                    <TableCell colSpan={5}>
-                      <Skeleton className="h-8 rounded-lg" />
+        {FEATURES.caja && (
+          <Card className="overflow-hidden rounded-2xl shadow-soft">
+            <CardHeader className="flex-row items-center gap-2 pb-2">
+              <Wallet className="size-4 text-primary" />
+              <CardTitle className="text-base">Cierres de caja</CardTitle>
+            </CardHeader>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Cierre</TableHead>
+                  <TableHead className="text-right">Base</TableHead>
+                  <TableHead className="text-right">Esperado</TableHead>
+                  <TableHead className="text-right">Contado</TableHead>
+                  <TableHead>Diferencia</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {cashLoading &&
+                  [0, 1].map((i) => (
+                    <TableRow key={i}>
+                      <TableCell colSpan={5}>
+                        <Skeleton className="h-8 rounded-lg" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                {!cashLoading && cashSessions?.length === 0 && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={5}
+                      className="py-10 text-center text-sm text-muted-foreground"
+                    >
+                      No hay cierres de caja en este rango.
+                    </TableCell>
+                  </TableRow>
+                )}
+                {cashSessions?.map((session) => (
+                  <TableRow key={session.id}>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {formatDateTime(session.closed_at)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {formatCurrency(session.opening_amount)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {formatCurrency(session.expected_amount)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {formatCurrency(session.counted_amount)}
+                    </TableCell>
+                    <TableCell>
+                      {session.difference === null ? (
+                        "—"
+                      ) : (
+                        <Badge
+                          variant={
+                            session.difference === 0
+                              ? "secondary"
+                              : session.difference > 0
+                                ? "outline"
+                                : "destructive"
+                          }
+                          className="rounded-full"
+                        >
+                          {session.difference === 0
+                            ? "Sin diferencia"
+                            : session.difference > 0
+                              ? `Sobrante ${formatCurrency(session.difference)}`
+                              : `Faltante ${formatCurrency(Math.abs(session.difference))}`}
+                        </Badge>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
-              {!cashLoading && cashSessions?.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">
-                    No hay cierres de caja en este rango.
-                  </TableCell>
-                </TableRow>
-              )}
-              {cashSessions?.map((session) => (
-                <TableRow key={session.id}>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {formatDateTime(session.closed_at)}
-                  </TableCell>
-                  <TableCell className="text-right">{formatCurrency(session.opening_amount)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(session.expected_amount)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(session.counted_amount)}</TableCell>
-                  <TableCell>
-                    {session.difference === null ? (
-                      "—"
-                    ) : (
-                      <Badge
-                        variant={
-                          session.difference === 0
-                            ? "secondary"
-                            : session.difference > 0
-                              ? "outline"
-                              : "destructive"
-                        }
-                        className="rounded-full"
-                      >
-                        {session.difference === 0
-                          ? "Sin diferencia"
-                          : session.difference > 0
-                            ? `Sobrante ${formatCurrency(session.difference)}`
-                            : `Faltante ${formatCurrency(Math.abs(session.difference))}`}
-                      </Badge>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+              </TableBody>
+            </Table>
+          </Card>
+        )}
       </div>
     </AppShell>
   );
@@ -573,7 +597,9 @@ function KpiCard({
             }
           >
             <Icon
-              className={tone === "primary" ? "size-4 text-primary-foreground" : "size-4 text-primary"}
+              className={
+                tone === "primary" ? "size-4 text-primary-foreground" : "size-4 text-primary"
+              }
             />
           </div>
         </div>
