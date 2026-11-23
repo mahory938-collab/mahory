@@ -29,7 +29,7 @@ const createUserSchema = z.object({
   fullName: z.string().trim().min(3, "Ingrese el nombre completo"),
   email: z.string().trim().email("Correo inválido"),
   password: z.string().min(6, "Mínimo 6 caracteres"),
-  role: z.enum(["admin", "vendedor"]),
+  role: z.enum(["super_admin", "admin", "vendedor"]),
 });
 
 type CreateUserValues = z.infer<typeof createUserSchema>;
@@ -113,6 +113,7 @@ export function CreateUserDialog({
               <SelectContent>
                 <SelectItem value="vendedor">{ROLE_LABELS.vendedor}</SelectItem>
                 <SelectItem value="admin">{ROLE_LABELS.admin}</SelectItem>
+                <SelectItem value="super_admin">{ROLE_LABELS.super_admin}</SelectItem>
               </SelectContent>
             </Select>
           </div>

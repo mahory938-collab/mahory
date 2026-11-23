@@ -65,15 +65,16 @@ export const updateUserRoleAccount = createServerFn({ method: "POST" })
     if (!VALID_ROLES.includes(data.role)) throw new Error("Rol inválido");
     if (data.userId === caller.id) throw new Error("No puede cambiar su propio rol");
 
-    // Dar o quitar el rol de Super Administrador es solo de un Super Administrador.
+    // Cualquier administrador puede asignar el rol de Super Administrador, pero quitárselo a
+    // quien ya lo tiene solo lo hace otro Super Administrador.
     if (!callerIsSuper) {
       const { data: targetRoles } = await supabaseAdmin
         .from("user_roles")
         .select("role")
         .eq("user_id", data.userId);
       const targetIsSuper = (targetRoles ?? []).some((r) => r.role === "super_admin");
-      if (data.role === "super_admin" || targetIsSuper) {
-        throw new Error("Solo un Super Administrador puede cambiar ese rol.");
+      if (targetIsSuper && data.role !== "super_admin") {
+        throw new Error("Solo un Super Administrador puede quitarle ese rol a otro.");
       }
     }
 
