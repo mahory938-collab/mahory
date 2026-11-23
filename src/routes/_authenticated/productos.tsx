@@ -1,6 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ImageOff, Layers, Pencil, Plus, Scan, Search, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import {
@@ -37,6 +37,9 @@ import { formatCurrency, formatNumber } from "@/lib/format";
 import { roleHasPermission } from "@/lib/permissions";
 
 export const Route = createFileRoute("/_authenticated/productos")({
+  // Un código leído desde otra pantalla llega aquí como ?buscar=...
+  validateSearch: (search: Record<string, unknown>): { buscar?: string } =>
+    typeof search["buscar"] === "string" && search["buscar"] ? { buscar: search["buscar"] } : {},
   head: () => ({
     meta: [
       { title: "Productos — Mahory" },
@@ -59,6 +62,13 @@ function ProductosPage() {
   const canManage = roleHasPermission(role, "products.manage");
 
   const [search, setSearch] = useState("");
+  const { buscar } = Route.useSearch();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!buscar) return;
+    setSearch(buscar);
+    void navigate({ to: "/productos", search: {}, replace: true });
+  }, [buscar, navigate]);
   const [formOpen, setFormOpen] = useState(false);
   const [familyOpen, setFamilyOpen] = useState(false);
   const [editingFamily, setEditingFamily] = useState<ProductFamily | null>(null);

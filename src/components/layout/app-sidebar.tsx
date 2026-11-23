@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Package,
   Receipt,
+  ScanBarcode,
   Settings,
   ShoppingCart,
   Tag,
@@ -45,6 +46,7 @@ type NavItem = {
 const MAIN: NavItem[] = [
   { title: "Inicio", url: "/dashboard", icon: LayoutDashboard, permission: "dashboard.view" },
   { title: "Vender", url: "/pos", icon: ShoppingCart, permission: "pos.use" },
+  { title: "Consultar precio", url: "/precios", icon: ScanBarcode, permission: "pos.use" },
   { title: "Ventas", url: "/ventas", icon: ArrowLeftRight, permission: "pos.use" },
   { title: "Productos", url: "/productos", icon: Package, permission: "products.view" },
   { title: "Inventario", url: "/inventario", icon: Boxes, permission: "inventory.view" },

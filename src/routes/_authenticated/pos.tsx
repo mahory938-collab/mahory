@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   Bike,
   CheckCircle2,
@@ -92,6 +92,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/pos")({
+  // Un código leído desde otra pantalla llega aquí como ?codigo=...
+  validateSearch: (search: Record<string, unknown>): { codigo?: string } =>
+    typeof search["codigo"] === "string" && search["codigo"] ? { codigo: search["codigo"] } : {},
   head: () => ({
     meta: [
       { title: "Punto de venta — Mahory" },
@@ -302,6 +305,16 @@ function PosPage() {
 
   // Lector de escritorio: funciona aunque el cursor no esté en el campo de búsqueda.
   useBarcodeWedge((code) => void scan(code));
+
+  // Código leído desde otra pantalla: se agrega aquí y se limpia la dirección.
+  const { codigo } = Route.useSearch();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!codigo || promotions === undefined) return;
+    void scan(codigo);
+    void navigate({ to: "/pos", search: {}, replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [codigo, promotions]);
 
   const checkout = useMutation({
     mutationFn: async () => {

@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { History, Search } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +25,9 @@ import { roleHasPermission } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/inventario")({
+  // Un código leído desde otra pantalla llega aquí como ?buscar=...
+  validateSearch: (search: Record<string, unknown>): { buscar?: string } =>
+    typeof search["buscar"] === "string" && search["buscar"] ? { buscar: search["buscar"] } : {},
   head: () => ({
     meta: [
       { title: "Inventario — Mahory" },
@@ -58,6 +61,13 @@ function InventarioPage() {
 
   const [filter, setFilter] = useState<StockFilter>("all");
   const [search, setSearch] = useState("");
+  const { buscar } = Route.useSearch();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!buscar) return;
+    setSearch(buscar);
+    void navigate({ to: "/inventario", search: {}, replace: true });
+  }, [buscar, navigate]);
   const [adjusting, setAdjusting] = useState<InventoryProduct | null>(null);
   const [kardexProductId, setKardexProductId] = useState<string | null>(null);
 

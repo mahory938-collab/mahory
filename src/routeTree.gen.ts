@@ -23,6 +23,7 @@ import { Route as AuthenticatedGastosRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedInventarioRouteImport } from './routes/_authenticated/inventario'
 import { Route as AuthenticatedManualRouteImport } from './routes/_authenticated/manual'
 import { Route as AuthenticatedPosRouteImport } from './routes/_authenticated/pos'
+import { Route as AuthenticatedPreciosRouteImport } from './routes/_authenticated/precios'
 import { Route as AuthenticatedProductosRouteImport } from './routes/_authenticated/productos'
 import { Route as AuthenticatedPromocionesRouteImport } from './routes/_authenticated/promociones'
 import { Route as AuthenticatedProveedoresRouteImport } from './routes/_authenticated/proveedores'
@@ -100,6 +101,11 @@ const AuthenticatedPosRoute = AuthenticatedPosRouteImport.update({
   path: '/pos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPreciosRoute = AuthenticatedPreciosRouteImport.update({
+  id: '/precios',
+  path: '/precios',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedProductosRoute = AuthenticatedProductosRouteImport.update({
   id: '/productos',
   path: '/productos',
@@ -147,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/inventario': typeof AuthenticatedInventarioRoute
   '/manual': typeof AuthenticatedManualRoute
   '/pos': typeof AuthenticatedPosRoute
+  '/precios': typeof AuthenticatedPreciosRoute
   '/productos': typeof AuthenticatedProductosRoute
   '/promociones': typeof AuthenticatedPromocionesRoute
   '/proveedores': typeof AuthenticatedProveedoresRoute
@@ -168,6 +175,7 @@ export interface FileRoutesByTo {
   '/inventario': typeof AuthenticatedInventarioRoute
   '/manual': typeof AuthenticatedManualRoute
   '/pos': typeof AuthenticatedPosRoute
+  '/precios': typeof AuthenticatedPreciosRoute
   '/productos': typeof AuthenticatedProductosRoute
   '/promociones': typeof AuthenticatedPromocionesRoute
   '/proveedores': typeof AuthenticatedProveedoresRoute
@@ -191,6 +199,7 @@ export interface FileRoutesById {
   '/_authenticated/inventario': typeof AuthenticatedInventarioRoute
   '/_authenticated/manual': typeof AuthenticatedManualRoute
   '/_authenticated/pos': typeof AuthenticatedPosRoute
+  '/_authenticated/precios': typeof AuthenticatedPreciosRoute
   '/_authenticated/productos': typeof AuthenticatedProductosRoute
   '/_authenticated/promociones': typeof AuthenticatedPromocionesRoute
   '/_authenticated/proveedores': typeof AuthenticatedProveedoresRoute
@@ -214,6 +223,7 @@ export interface FileRouteTypes {
     | '/inventario'
     | '/manual'
     | '/pos'
+    | '/precios'
     | '/productos'
     | '/promociones'
     | '/proveedores'
@@ -235,6 +245,7 @@ export interface FileRouteTypes {
     | '/inventario'
     | '/manual'
     | '/pos'
+    | '/precios'
     | '/productos'
     | '/promociones'
     | '/proveedores'
@@ -257,6 +268,7 @@ export interface FileRouteTypes {
     | '/_authenticated/inventario'
     | '/_authenticated/manual'
     | '/_authenticated/pos'
+    | '/_authenticated/precios'
     | '/_authenticated/productos'
     | '/_authenticated/promociones'
     | '/_authenticated/proveedores'
@@ -372,6 +384,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/precios': {
+      id: '/_authenticated/precios'
+      path: '/precios'
+      fullPath: '/precios'
+      preLoaderRoute: typeof AuthenticatedPreciosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/productos': {
       id: '/_authenticated/productos'
       path: '/productos'
@@ -428,6 +447,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedInventarioRoute: typeof AuthenticatedInventarioRoute
   AuthenticatedManualRoute: typeof AuthenticatedManualRoute
   AuthenticatedPosRoute: typeof AuthenticatedPosRoute
+  AuthenticatedPreciosRoute: typeof AuthenticatedPreciosRoute
   AuthenticatedProductosRoute: typeof AuthenticatedProductosRoute
   AuthenticatedPromocionesRoute: typeof AuthenticatedPromocionesRoute
   AuthenticatedProveedoresRoute: typeof AuthenticatedProveedoresRoute
@@ -447,6 +467,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedInventarioRoute: AuthenticatedInventarioRoute,
   AuthenticatedManualRoute: AuthenticatedManualRoute,
   AuthenticatedPosRoute: AuthenticatedPosRoute,
+  AuthenticatedPreciosRoute: AuthenticatedPreciosRoute,
   AuthenticatedProductosRoute: AuthenticatedProductosRoute,
   AuthenticatedPromocionesRoute: AuthenticatedPromocionesRoute,
   AuthenticatedProveedoresRoute: AuthenticatedProveedoresRoute,

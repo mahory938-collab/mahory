@@ -1,9 +1,10 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { LogOut, Moon, Search, Sun, User } from "lucide-react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { GlobalSearch } from "@/components/layout/global-search";
+import { ScanChoiceDialog } from "@/components/layout/scan-choice-dialog";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -15,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { useBarcodeWedge } from "@/features/pos/use-barcode-wedge";
 import { useAuth, useSignOut } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
 import { ROLE_LABELS } from "@/lib/permissions";
@@ -34,6 +36,19 @@ export function AppShell({ title, description, actions, children, flush }: AppSh
   const { theme, toggle } = useTheme();
   const navigate = useNavigate();
   const signOut = useSignOut(() => navigate({ to: "/auth", replace: true }));
+  const pathname = useRouterState({ select: (r) => r.location.pathname });
+
+  // Lector de código de barras de escritorio. En Vender y Consultar precio lo atiende la propia
+  // pantalla; en Productos e Inventario pregunta qué hacer; en el resto, va directo a Vender.
+  const [askCode, setAskCode] = useState<string | null>(null);
+  useBarcodeWedge((code) => {
+    if (pathname === "/pos" || pathname === "/precios") return;
+    if (pathname === "/productos" || pathname === "/inventario") {
+      setAskCode(code);
+      return;
+    }
+    void navigate({ to: "/pos", search: { codigo: code } });
+  });
 
   return (
     <SidebarProvider>
@@ -121,6 +136,20 @@ export function AppShell({ title, description, actions, children, flush }: AppSh
           </main>
         </SidebarInset>
       </div>
+      <ScanChoiceDialog
+        code={askCode}
+        onClose={() => setAskCode(null)}
+        onSale={(code) => {
+          setAskCode(null);
+          void navigate({ to: "/pos", search: { codigo: code } });
+        }}
+        onFind={(code) => {
+          setAskCode(null);
+          if (pathname === "/inventario")
+            void navigate({ to: "/inventario", search: { buscar: code } });
+          else void navigate({ to: "/productos", search: { buscar: code } });
+        }}
+      />
     </SidebarProvider>
   );
 }
