@@ -16,7 +16,8 @@ async function requireAdmin(accessToken: string) {
   const isAdmin = (callerRoles ?? []).some((r) => r.role === "admin" || r.role === "super_admin");
   if (!isAdmin) throw new Error("No tiene permisos para administrar usuarios");
 
-  return { supabaseAdmin, caller: callerData.user };
+  const callerIsSuper = (callerRoles ?? []).some((r) => r.role === "super_admin");
+  return { supabaseAdmin, caller: callerData.user, callerIsSuper };
 }
 
 /** Creates a login (auth.users) + profile + role for a new team member. Admin-only. */
@@ -102,4 +103,60 @@ export const deleteUserAccount = createServerFn({ method: "POST" })
 
     const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
     if (error) throw new Error(error.message);
+  });
+
+/**
+ * Edita los datos de una cuenta: nombre, correo (con el que inicia sesión) y teléfono. Nunca
+ * toca la contraseña. Solo administradores; los datos de un Super Administrador solo los cambia
+ * otro Super Administrador (o él mismo).
+ */
+export const updateUserAccount = createServerFn({ method: "POST" })
+  .validator(
+    (data: unknown) =>
+      data as {
+        accessToken: string;
+        userId: string;
+        fullName: string;
+        email: string;
+        phone: string;
+      },
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin, caller, callerIsSuper } = await requireAdmin(data.accessToken);
+
+    const fullName = data.fullName.trim();
+    const email = data.email.trim().toLowerCase();
+    const phone = data.phone.trim();
+
+    if (fullName.length < 2) throw new Error("Escriba el nombre.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("El correo no es válido.");
+    if (phone.length > 30) throw new Error("El teléfono es demasiado largo.");
+
+    const { data: targetRoles } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", data.userId);
+    const targetIsSuper = (targetRoles ?? []).some((r) => r.role === "super_admin");
+    if (targetIsSuper && !callerIsSuper && data.userId !== caller.id) {
+      throw new Error("Solo un Super Administrador puede modificar a otro Super Administrador.");
+    }
+
+    const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(data.userId, {
+      email,
+      email_confirm: true,
+      user_metadata: { full_name: fullName },
+    });
+    if (authError) {
+      throw new Error(
+        /already|registered|exists/i.test(authError.message)
+          ? "Ya existe otra cuenta con ese correo."
+          : authError.message,
+      );
+    }
+
+    const { error: profileError } = await supabaseAdmin
+      .from("profiles")
+      .update({ full_name: fullName, email, phone: phone || null })
+      .eq("id", data.userId);
+    if (profileError) throw new Error(profileError.message);
   });

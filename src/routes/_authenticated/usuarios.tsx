@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -35,6 +35,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CreateUserDialog } from "@/features/users/create-user-dialog";
+import { EditUserDialog } from "@/features/users/edit-user-dialog";
 import type { AppUser } from "@/features/users/use-users";
 import {
   useDeleteUser,
@@ -63,6 +64,7 @@ function UsuariosPage() {
   const isViewerSuperAdmin = viewerRole === "super_admin";
   const [createOpen, setCreateOpen] = useState(false);
   const [deleting, setDeleting] = useState<AppUser | null>(null);
+  const [editing, setEditing] = useState<AppUser | null>(null);
 
   const { data: users, isLoading } = useUsersList();
   const updateRole = useUpdateUserRole();
@@ -101,7 +103,7 @@ function UsuariosPage() {
               <TableHead>Rol</TableHead>
               <TableHead>Desde</TableHead>
               <TableHead>Estado</TableHead>
-              <TableHead className="w-12" />
+              <TableHead className="w-24" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -128,6 +130,8 @@ function UsuariosPage() {
               // A super admin can reassign anyone's role (except their own);
               // a regular admin can't touch a super admin's role.
               const canEditRole = !isSelf && (isViewerSuperAdmin || !isFounder);
+              // Los datos de un Super Administrador solo los cambia otro Super Administrador (o él mismo).
+              const canEditData = isSelf || isViewerSuperAdmin || !isFounder;
               return (
                 <TableRow key={account.id}>
                   <TableCell className="font-medium">{account.full_name || "—"}</TableCell>
@@ -189,16 +193,30 @@ function UsuariosPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {canEditRole && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-8 rounded-lg text-destructive"
-                        onClick={() => setDeleting(account)}
-                      >
-                        <Trash2 className="size-3.5" />
-                      </Button>
-                    )}
+                    <div className="flex items-center gap-1">
+                      {canEditData && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-8 rounded-lg"
+                          onClick={() => setEditing(account)}
+                          aria-label="Editar usuario"
+                        >
+                          <Pencil className="size-3.5" />
+                        </Button>
+                      )}
+                      {canEditRole && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-8 rounded-lg text-destructive"
+                          onClick={() => setDeleting(account)}
+                          aria-label="Eliminar usuario"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               );
@@ -208,6 +226,7 @@ function UsuariosPage() {
       </Card>
 
       <CreateUserDialog open={createOpen} onOpenChange={setCreateOpen} />
+      <EditUserDialog user={editing} onClose={() => setEditing(null)} />
 
       <AlertDialog open={Boolean(deleting)} onOpenChange={(open) => !open && setDeleting(null)}>
         <AlertDialogContent>

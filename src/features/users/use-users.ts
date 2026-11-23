@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   createUserAccount,
   deleteUserAccount,
+  updateUserAccount,
   updateUserRoleAccount,
 } from "@/features/users/user-server-actions";
 import type { AppRole } from "@/lib/permissions";
@@ -91,6 +92,22 @@ export function useToggleUserActive() {
         .update({ is_active: input.isActive })
         .eq("id", input.userId);
       if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+  });
+}
+
+export function useUpdateUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      userId: string;
+      fullName: string;
+      email: string;
+      phone: string;
+    }) => {
+      const accessToken = await getAccessToken();
+      return updateUserAccount({ data: { accessToken, ...input } });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
   });
