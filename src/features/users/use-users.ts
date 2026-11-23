@@ -105,6 +105,7 @@ export function useUpdateUser() {
       fullName: string;
       email: string;
       phone: string;
+      password?: string;
     }) => {
       const accessToken = await getAccessToken();
       return updateUserAccount({ data: { accessToken, ...input } });

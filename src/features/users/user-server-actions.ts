@@ -118,9 +118,9 @@ export const deleteUserAccount = createServerFn({ method: "POST" })
   });
 
 /**
- * Edita los datos de una cuenta: nombre, correo (con el que inicia sesión) y teléfono. Nunca
- * toca la contraseña. Solo administradores; los datos de un Super Administrador solo los cambia
- * otro Super Administrador (o él mismo).
+ * Edita los datos de una cuenta: nombre, correo (con el que inicia sesión), teléfono y, solo si
+ * se escribe, una contraseña nueva. Solo administradores; los datos de un Super Administrador
+ * (incluida su contraseña) solo los cambia otro Super Administrador (o él mismo).
  */
 export const updateUserAccount = createServerFn({ method: "POST" })
   .validator(
@@ -131,6 +131,7 @@ export const updateUserAccount = createServerFn({ method: "POST" })
         fullName: string;
         email: string;
         phone: string;
+        password?: string;
       },
   )
   .handler(async ({ data }) => {
@@ -139,10 +140,14 @@ export const updateUserAccount = createServerFn({ method: "POST" })
     const fullName = data.fullName.trim();
     const email = data.email.trim().toLowerCase();
     const phone = data.phone.trim();
+    const password = data.password ? data.password : undefined;
 
     if (fullName.length < 2) throw new Error("Escriba el nombre.");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("El correo no es válido.");
     if (phone.length > 30) throw new Error("El teléfono es demasiado largo.");
+    if (password !== undefined && password.length < 6) {
+      throw new Error("La contraseña debe tener al menos 6 caracteres");
+    }
 
     const { data: targetRoles } = await supabaseAdmin
       .from("user_roles")
@@ -157,6 +162,7 @@ export const updateUserAccount = createServerFn({ method: "POST" })
       email,
       email_confirm: true,
       user_metadata: { full_name: fullName },
+      ...(password ? { password } : {}),
     });
     if (authError) {
       throw new Error(
