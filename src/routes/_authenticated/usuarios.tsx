@@ -163,6 +163,10 @@ function UsuariosPage() {
                         <SelectContent>
                           <SelectItem value="vendedor">{ROLE_LABELS.vendedor}</SelectItem>
                           <SelectItem value="admin">{ROLE_LABELS.admin}</SelectItem>
+                          {/* Sin esta opción, la cuenta de un Super Administrador se veía en blanco. */}
+                          {(isViewerSuperAdmin || isFounder) && (
+                            <SelectItem value="super_admin">{ROLE_LABELS.super_admin}</SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                     )}

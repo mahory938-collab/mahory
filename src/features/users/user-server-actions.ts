@@ -60,10 +60,22 @@ export const createUserAccount = createServerFn({ method: "POST" })
 export const updateUserRoleAccount = createServerFn({ method: "POST" })
   .validator((data: unknown) => data as { accessToken: string; userId: string; role: AppRole })
   .handler(async ({ data }) => {
-    const { supabaseAdmin, caller } = await requireAdmin(data.accessToken);
+    const { supabaseAdmin, caller, callerIsSuper } = await requireAdmin(data.accessToken);
 
     if (!VALID_ROLES.includes(data.role)) throw new Error("Rol inválido");
     if (data.userId === caller.id) throw new Error("No puede cambiar su propio rol");
+
+    // Dar o quitar el rol de Super Administrador es solo de un Super Administrador.
+    if (!callerIsSuper) {
+      const { data: targetRoles } = await supabaseAdmin
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", data.userId);
+      const targetIsSuper = (targetRoles ?? []).some((r) => r.role === "super_admin");
+      if (data.role === "super_admin" || targetIsSuper) {
+        throw new Error("Solo un Super Administrador puede cambiar ese rol.");
+      }
+    }
 
     const { error } = await supabaseAdmin
       .from("user_roles")

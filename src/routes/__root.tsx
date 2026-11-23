@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/use-auth";
+import { resetLocalSession } from "@/lib/session-reset";
 
 function NotFoundComponent() {
   return (
@@ -39,32 +40,70 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
 
+  // Primer fallo en esta pestaña: se recarga sola una vez (casi siempre basta). Si vuelve a
+  // fallar, se muestran las opciones.
+  const autoReloaded = (() => {
+    try {
+      return sessionStorage.getItem("mahory-error-reload") === "1";
+    } catch {
+      return true;
+    }
+  })();
+  useEffect(() => {
+    if (autoReloaded) return;
+    const timer = setTimeout(() => {
+      try {
+        sessionStorage.setItem("mahory-error-reload", "1");
+      } catch {
+        // almacenamiento no disponible
+      }
+      window.location.reload();
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [autoReloaded]);
+
+  // Si la página volvió a cargar bien, la próxima vez se vuelve a permitir el reintento automático.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        sessionStorage.removeItem("mahory-error-reload");
+      } catch {
+        // almacenamiento no disponible
+      }
+    }, 20000);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
+          {autoReloaded ? "Esta pantalla no cargó" : "Un momento…"}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+          {autoReloaded
+            ? "Algo falló de nuestro lado. Intente de nuevo; si sigue igual, cierre sesión y vuelva a entrar."
+            : "Estamos volviendo a cargar la pantalla."}
         </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <button
-            onClick={() => {
-              router.invalidate();
-              reset();
-            }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Try again
-          </button>
-          <a
-            href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-          >
-            Go home
-          </a>
-        </div>
+        {autoReloaded && (
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
+            <button
+              onClick={() => {
+                router.invalidate();
+                reset();
+              }}
+              className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Reintentar
+            </button>
+            <button
+              onClick={() => void resetLocalSession()}
+              className="inline-flex items-center justify-center rounded-xl border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            >
+              Cerrar sesión y entrar de nuevo
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -22,6 +22,8 @@ type AuthState = {
   session: Session | null;
   profile: AuthProfile | null;
   role: AppRole | null;
+  /** Motivo técnico si no se pudo cargar el perfil o el rol. */
+  accountError: string | null;
   can: (permission: Permission) => boolean;
   isAdmin: boolean;
 };
@@ -102,10 +104,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user: sessionQuery.data?.user ?? null,
       profile: accountQuery.data?.profile ?? null,
       role,
+      accountError: accountQuery.error ? accountQuery.error.message : null,
       can: (permission: Permission) => roleHasPermission(role, permission),
       isAdmin: role === "admin" || role === "super_admin",
     };
-  }, [sessionQuery.data, sessionQuery.isLoading, accountQuery.data, accountQuery.isLoading, userId]);
+  }, [
+    sessionQuery.data,
+    sessionQuery.isLoading,
+    accountQuery.data,
+    accountQuery.isLoading,
+    accountQuery.error,
+    userId,
+  ]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
@@ -119,6 +129,7 @@ export function useAuth(): AuthState {
       session: null,
       profile: null,
       role: null,
+      accountError: null,
       can: () => false,
       isAdmin: false,
     };
