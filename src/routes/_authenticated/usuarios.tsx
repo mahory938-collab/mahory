@@ -227,7 +227,15 @@ function UsuariosPage() {
       </Card>
 
       <CreateUserDialog open={createOpen} onOpenChange={setCreateOpen} />
-      <EditUserDialog user={editing} onClose={() => setEditing(null)} />
+      <EditUserDialog
+        user={editing}
+        canEditRole={
+          editing
+            ? editing.id !== user?.id && (isViewerSuperAdmin || editing.role !== "super_admin")
+            : false
+        }
+        onClose={() => setEditing(null)}
+      />
 
       <AlertDialog open={Boolean(deleting)} onOpenChange={(open) => !open && setDeleting(null)}>
         <AlertDialogContent>

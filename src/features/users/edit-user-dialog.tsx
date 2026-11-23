@@ -13,9 +13,26 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useUpdateUser, type AppUser } from "@/features/users/use-users";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useUpdateUser, useUpdateUserRole, type AppUser } from "@/features/users/use-users";
+import { ROLE_LABELS, type AppRole } from "@/lib/permissions";
 
-export function EditUserDialog({ user, onClose }: { user: AppUser | null; onClose: () => void }) {
+export function EditUserDialog({
+  user,
+  canEditRole,
+  onClose,
+}: {
+  user: AppUser | null;
+  /** false para la propia cuenta y para quien no tiene permiso de cambiar ese rol. */
+  canEditRole: boolean;
+  onClose: () => void;
+}) {
   return (
     <Dialog open={user !== null} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
@@ -27,14 +44,26 @@ export function EditUserDialog({ user, onClose }: { user: AppUser | null; onClos
           </DialogDescription>
         </DialogHeader>
         {/* Se monta de nuevo por cada usuario, así los campos arrancan con sus datos. */}
-        {user && <EditUserForm key={user.id} user={user} onClose={onClose} />}
+        {user && (
+          <EditUserForm key={user.id} user={user} canEditRole={canEditRole} onClose={onClose} />
+        )}
       </DialogContent>
     </Dialog>
   );
 }
 
-function EditUserForm({ user, onClose }: { user: AppUser; onClose: () => void }) {
+function EditUserForm({
+  user,
+  canEditRole,
+  onClose,
+}: {
+  user: AppUser;
+  canEditRole: boolean;
+  onClose: () => void;
+}) {
   const update = useUpdateUser();
+  const updateRole = useUpdateUserRole();
+  const [role, setRole] = useState<AppRole>(user.role ?? "vendedor");
   const [fullName, setFullName] = useState(user.full_name);
   const [email, setEmail] = useState(user.email ?? "");
   const [phone, setPhone] = useState(user.phone ?? "");
@@ -47,7 +76,7 @@ function EditUserForm({ user, onClose }: { user: AppUser; onClose: () => void })
     (password === "" || password.length >= 6);
 
   const submit = async () => {
-    if (!valid || update.isPending) return;
+    if (!valid || update.isPending || updateRole.isPending) return;
     try {
       await update.mutateAsync({
         userId: user.id,
@@ -56,6 +85,18 @@ function EditUserForm({ user, onClose }: { user: AppUser; onClose: () => void })
         phone,
         ...(password ? { password } : {}),
       });
+      if (canEditRole && role !== (user.role ?? "vendedor")) {
+        try {
+          await updateRole.mutateAsync({ userId: user.id, role });
+        } catch (error) {
+          toast.error(
+            `Se guardaron los datos, pero no se pudo cambiar el rol: ${
+              error instanceof Error ? error.message : "error desconocido"
+            }`,
+          );
+          return;
+        }
+      }
       toast.success("Usuario actualizado");
       onClose();
     } catch (error) {
@@ -107,6 +148,29 @@ function EditUserForm({ user, onClose }: { user: AppUser; onClose: () => void })
       </div>
 
       <div className="space-y-1.5">
+        <Label>Rol</Label>
+        <Select
+          value={role}
+          onValueChange={(value) => setRole(value as AppRole)}
+          disabled={!canEditRole}
+        >
+          <SelectTrigger className="h-10 rounded-xl">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="vendedor">{ROLE_LABELS.vendedor}</SelectItem>
+            <SelectItem value="admin">{ROLE_LABELS.admin}</SelectItem>
+            <SelectItem value="super_admin">{ROLE_LABELS.super_admin}</SelectItem>
+          </SelectContent>
+        </Select>
+        {!canEditRole && (
+          <p className="text-xs text-muted-foreground">
+            No puede cambiar este rol (es su propia cuenta o la de un Super Administrador).
+          </p>
+        )}
+      </div>
+
+      <div className="space-y-1.5">
         <Label htmlFor="edit-password">Contraseña nueva (opcional)</Label>
         <div className="relative">
           <Input
@@ -140,8 +204,14 @@ function EditUserForm({ user, onClose }: { user: AppUser; onClose: () => void })
         <Button type="button" variant="outline" className="rounded-xl" onClick={onClose}>
           Cancelar
         </Button>
-        <Button type="submit" className="rounded-xl" disabled={!valid || update.isPending}>
-          {update.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+        <Button
+          type="submit"
+          className="rounded-xl"
+          disabled={!valid || update.isPending || updateRole.isPending}
+        >
+          {(update.isPending || updateRole.isPending) && (
+            <Loader2 className="mr-2 size-4 animate-spin" />
+          )}
           Guardar cambios
         </Button>
       </DialogFooter>
