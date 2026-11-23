@@ -80,6 +80,7 @@ import { playBeep } from "@/lib/beep";
 import type { Promotion } from "@/features/promotions/use-promotions";
 import { findBestPromotion, usePromotions } from "@/features/promotions/use-promotions";
 import { printReceipt } from "@/features/sales/print-receipt";
+import { useBarcodeWedge } from "@/features/pos/use-barcode-wedge";
 import { FEATURES } from "@/lib/plan";
 import type { SaleDetail } from "@/features/sales/use-sales";
 import { useStoreInfo } from "@/features/sales/use-store-info";
@@ -278,18 +279,29 @@ function PosPage() {
   };
 
   const scan = async (code: string) => {
-    const product = await findProductByCode(code);
-    if (!product) {
-      toast.error("Producto no encontrado");
-      return;
+    try {
+      const product = await findProductByCode(code);
+      if (!product) {
+        playBeep("error");
+        toast.error("Producto no encontrado", { description: `Código ${code}` });
+        return;
+      }
+      if (product.stock <= 0) {
+        playBeep("error");
+        toast.error(`"${product.name}" no tiene stock disponible`);
+        return;
+      }
+      addToCart(product);
+      playBeep("ok");
+      setSearch("");
+    } catch {
+      playBeep("error");
+      toast.error("No se pudo leer el código. Revise la conexión e intente de nuevo.");
     }
-    if (product.stock <= 0) {
-      toast.error(`"${product.name}" no tiene stock disponible`);
-      return;
-    }
-    addToCart(product);
-    setSearch("");
   };
+
+  // Lector de escritorio: funciona aunque el cursor no esté en el campo de búsqueda.
+  useBarcodeWedge((code) => void scan(code));
 
   const checkout = useMutation({
     mutationFn: async () => {

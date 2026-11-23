@@ -1,3 +1,4 @@
+import { barcodeVariants } from "@/lib/barcode";
 import { createServerFn } from "@tanstack/react-start";
 
 /**
@@ -85,14 +86,6 @@ function safeEqual(a: string, b: string) {
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const BARCODE_RE = /^[A-Za-z0-9\-.$/+% ]{3,64}$/;
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
-
-/** UPC-A (12 dígitos) y EAN-13 con 0 adelante son el mismo código; se buscan ambos. */
-function barcodeVariants(barcode: string) {
-  const variants = new Set([barcode]);
-  if (/^\d{12}$/.test(barcode)) variants.add(`0${barcode}`);
-  if (/^0\d{12}$/.test(barcode)) variants.add(barcode.slice(1));
-  return [...variants];
-}
 
 async function requireUser(accessToken: string) {
   const admin = await getAdmin();

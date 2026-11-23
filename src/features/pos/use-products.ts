@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
+import { barcodeVariants } from "@/lib/barcode";
 import { supabase } from "@/integrations/supabase/client";
 
 export type PosProduct = {
@@ -66,14 +67,27 @@ export function usePosProducts(search: string, categoryId: string | null) {
 
 /** Exact lookup used by the barcode scanner path. */
 export async function findProductByCode(code: string): Promise<PosProduct | null> {
-  const { data, error } = await supabase
+  const columns = "id, name, barcode, sku, price, cost, tax_rate, stock, image_url, category_id";
+  const byBarcode = await supabase
     .from("products")
-    .select("id, name, barcode, sku, price, cost, tax_rate, stock, image_url, category_id")
+    .select(columns)
     .eq("status", "active")
-    .or(`barcode.eq.${code},sku.eq.${code}`)
+    .in("barcode", barcodeVariants(code))
     .limit(1)
     .maybeSingle();
-  if (error) throw error;
+  if (byBarcode.error) throw byBarcode.error;
+  let data = byBarcode.data;
+  if (!data) {
+    const bySku = await supabase
+      .from("products")
+      .select(columns)
+      .eq("status", "active")
+      .eq("sku", code)
+      .limit(1)
+      .maybeSingle();
+    if (bySku.error) throw bySku.error;
+    data = bySku.data;
+  }
   if (!data) return null;
   return {
     ...data,
