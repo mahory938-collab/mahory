@@ -58,14 +58,12 @@ function AuthPage() {
     defaultValues: { email: "", password: "", fullName: "" },
   });
 
-
   const submit = useMutation({
     mutationFn: async (values: AuthValues) => {
       if (mode === "signup" && values.fullName.trim().length < 3) {
         throw new Error("Ingrese su nombre completo");
       }
       if (mode === "signin") {
-
         const { error } = await supabase.auth.signInWithPassword({
           email: values.email,
           password: values.password,
@@ -107,14 +105,22 @@ function AuthPage() {
     <div className="grid min-h-screen lg:grid-cols-2">
       {/* Brand panel */}
       <div className="relative hidden overflow-hidden bg-gradient-brand p-12 lg:flex lg:flex-col lg:justify-between">
-        <div className="flex items-center gap-3">
-          <img src="/logo-mahory.png" alt="Mahory" className="size-14 rounded-full shadow-glow" />
-          <span className="font-serif text-xl font-semibold uppercase tracking-[0.3em] text-primary-foreground">
-            Mahory
-          </span>
+        {/* Manchas y destellos con los colores del logo */}
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          <span className="absolute -left-24 top-1/3 size-80 rounded-full bg-candy-pink/25 blur-3xl" />
+          <span className="absolute -right-20 top-6 size-72 rounded-full bg-candy-sky/20 blur-3xl" />
+          <span className="absolute bottom-0 right-1/4 size-60 rounded-full bg-candy-sun/15 blur-3xl" />
         </div>
 
-        <div className="max-w-md space-y-5">
+        <div className="animate-fade-up relative z-10 flex items-center gap-3">
+          <img
+            src="/logo-mahory.png"
+            alt="Mahory Kids"
+            className="size-36 object-contain drop-shadow-lg"
+          />
+        </div>
+
+        <div className="stagger relative z-10 max-w-md space-y-5">
           <h2 className="font-display text-4xl font-semibold leading-tight text-primary-foreground">
             Viste con amor, brilla con estilo.
           </h2>
@@ -129,7 +135,7 @@ function AuthPage() {
           </ul>
         </div>
 
-        <p className="text-xs text-primary-foreground/60">
+        <p className="relative z-10 text-xs text-primary-foreground/60">
           © {new Date().getFullYear()} Mahory · Todos los derechos reservados
         </p>
       </div>
@@ -138,7 +144,7 @@ function AuthPage() {
       <div className="flex items-center justify-center bg-background p-6">
         <div className="w-full max-w-sm animate-pop-in">
           <div className="mb-8 lg:hidden">
-            <img src="/logo-mahory.png" alt="Mahory" className="size-16 rounded-full shadow-glow" />
+            <img src="/logo-mahory.png" alt="Mahory Kids" className="size-28 object-contain" />
           </div>
 
           <h1 className="font-display text-2xl font-semibold">

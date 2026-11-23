@@ -15,7 +15,7 @@
 
 @theme inline {
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Sora", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -26,6 +26,12 @@
   --radius-4xl: calc(var(--radius) + 16px);
 
   /* Raw brand palette — usable directly (bg-marfil, text-cafe-profundo, etc.) */
+  /* Acentos pastel del logo: rosa, cielo, sol y menta */
+  --color-candy-pink: var(--palette-rosa);
+  --color-candy-sky: var(--palette-cielo);
+  --color-candy-sun: var(--palette-sol);
+  --color-candy-mint: var(--palette-menta);
+
   --color-marfil: var(--palette-marfil);
   --color-crema: var(--palette-crema);
   --color-miel: var(--palette-miel);
@@ -84,10 +90,31 @@
   --shadow-card: 0 1px 3px oklch(0.25 0.05 300 / 0.08), 0 12px 32px -16px oklch(0.25 0.05 300 / 0.2);
   --shadow-elevated: 0 2px 6px oklch(0.25 0.05 300 / 0.1), 0 24px 48px -20px oklch(0.25 0.05 300 / 0.28);
   --shadow-glow: 0 8px 32px -8px var(--primary-glow);
+  --shadow-bubble: 0 2px 0 oklch(1 0 0 / 0.55) inset, 0 10px 28px -10px var(--primary-glow);
+
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --background-image-gradient-candy: linear-gradient(
+    135deg,
+    var(--palette-rosa) 0%,
+    var(--palette-caramelo) 45%,
+    var(--palette-cielo) 100%
+  );
+  --background-image-gradient-primary: var(--btn-gradient);
 }
 
 :root {
-  --radius: 0.875rem;
+  --radius: 1rem;
+
+  /* Acentos del logo (pastel) */
+  --palette-rosa: #f6a6d0;
+  --palette-cielo: #8ccdf0;
+  --palette-sol: #ffd45e;
+  --palette-menta: #92dcae;
+
+  --btn-gradient: linear-gradient(135deg, #9568cf 0%, #7448b0 100%);
+  --sidebar-pill: linear-gradient(135deg, #e6d6f9 0%, #c3a6e8 100%);
 
   /* Brand palette — the single source of truth for every color below */
   --palette-marfil: #f6f1fa; /* Blanco lavanda */
@@ -140,12 +167,12 @@
   --input: var(--palette-miel);
   --ring: color-mix(in oklab, var(--palette-caramelo) 55%, transparent);
 
-  --chart-1: var(--palette-cafe-profundo);
-  --chart-2: var(--palette-canela);
-  --chart-3: var(--palette-cafe-rosado);
-  --chart-4: var(--palette-caramelo);
-  --chart-5: var(--palette-miel);
-  --chart-6: var(--palette-crema);
+  --chart-1: var(--palette-canela);
+  --chart-2: color-mix(in oklab, var(--palette-rosa) 80%, #d4488f);
+  --chart-3: color-mix(in oklab, var(--palette-cielo) 80%, #2f86c2);
+  --chart-4: color-mix(in oklab, var(--palette-sol) 85%, #d99a00);
+  --chart-5: color-mix(in oklab, var(--palette-menta) 80%, #2f9b5c);
+  --chart-6: var(--palette-caramelo);
 
   --sidebar: var(--palette-cafe-profundo);
   --sidebar-foreground: var(--palette-marfil);
@@ -166,6 +193,8 @@
   --palette-cafe-rosado: #a688d6;
   --palette-canela: #8157b8;
   --palette-cafe-profundo: #2a1b3d;
+
+  --btn-gradient: linear-gradient(135deg, #d9c2f5 0%, #b697e6 100%);
 
   --background: color-mix(in oklab, var(--palette-cafe-profundo) 94%, var(--palette-canela));
   --foreground: var(--palette-marfil);
@@ -208,12 +237,12 @@
   --input: color-mix(in oklab, var(--palette-miel) 28%, transparent);
   --ring: var(--palette-caramelo);
 
-  --chart-1: var(--palette-crema);
-  --chart-2: var(--palette-miel);
-  --chart-3: var(--palette-caramelo);
-  --chart-4: var(--palette-cafe-rosado);
-  --chart-5: var(--palette-canela);
-  --chart-6: var(--palette-marfil);
+  --chart-1: var(--palette-caramelo);
+  --chart-2: var(--palette-rosa);
+  --chart-3: var(--palette-cielo);
+  --chart-4: var(--palette-sol);
+  --chart-5: var(--palette-menta);
+  --chart-6: var(--palette-crema);
 
   --sidebar: color-mix(in oklab, var(--palette-cafe-profundo) 88%, black);
   --sidebar-foreground: var(--palette-marfil);
@@ -249,7 +278,13 @@
   }
 
   body {
+    /* Fondo con manchas suaves de los colores del logo, fijo al hacer scroll */
     background-color: var(--color-background);
+    background-image:
+      radial-gradient(60rem 40rem at 8% -10%, color-mix(in oklab, var(--palette-rosa) 12%, transparent), transparent 60%),
+      radial-gradient(50rem 36rem at 100% 0%, color-mix(in oklab, var(--palette-cielo) 10%, transparent), transparent 60%),
+      radial-gradient(55rem 40rem at 70% 110%, color-mix(in oklab, var(--palette-caramelo) 16%, transparent), transparent 60%);
+    background-attachment: fixed;
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -303,4 +338,178 @@
 
 @utility animate-pop-in {
   animation: pop-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ---------- Movimiento ---------- */
+
+@keyframes fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pop-bubble {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--float-rot, 0deg));
+  }
+  50% {
+    transform: translateY(-10px) rotate(calc(var(--float-rot, 0deg) + 4deg));
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.8) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15) rotate(20deg);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -150% 0;
+  }
+  100% {
+    background-position: 250% 0;
+  }
+}
+
+@keyframes confetti-fall {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, -20px, 0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--dx, 0px), 260px, 0) rotate(var(--rot, 360deg));
+  }
+}
+
+/* La página entra con un suave movimiento hacia arriba */
+@utility animate-fade-up {
+  animation: fade-up 0.4s var(--ease-smooth) backwards;
+}
+
+/* Rebote tipo burbuja: tarjetas del carrito, avisos, confirmaciones */
+@utility animate-pop-bubble {
+  animation: pop-bubble 0.28s var(--ease-smooth) backwards;
+}
+
+@utility animate-float {
+  animation: float-y 6s ease-in-out infinite;
+}
+
+@utility animate-twinkle {
+  animation: twinkle 2.6s ease-in-out infinite;
+}
+
+/* Hijos que aparecen uno tras otro (rejillas de tarjetas, KPIs) */
+@utility stagger {
+  & > * {
+    animation: fade-up 0.5s var(--ease-smooth) backwards;
+  }
+  & > *:nth-child(1) { animation-delay: 0ms; }
+  & > *:nth-child(2) { animation-delay: 45ms; }
+  & > *:nth-child(3) { animation-delay: 90ms; }
+  & > *:nth-child(4) { animation-delay: 135ms; }
+  & > *:nth-child(5) { animation-delay: 180ms; }
+  & > *:nth-child(6) { animation-delay: 225ms; }
+  & > *:nth-child(7) { animation-delay: 270ms; }
+  & > *:nth-child(8) { animation-delay: 315ms; }
+  & > *:nth-child(n + 9) { animation-delay: 360ms; }
+}
+
+/* Superficie de vidrio suave, para el encabezado y paneles flotantes */
+@utility glass {
+  background-color: color-mix(in oklab, var(--color-card) 72%, transparent);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+}
+
+/* Botones y tarjetas que "se hunden" al tocarlos */
+@utility pressable {
+  transition:
+    transform 0.2s var(--ease-smooth),
+    box-shadow 0.25s var(--ease-smooth),
+    background-color 0.2s,
+    border-color 0.2s;
+  &:hover {
+    transform: translateY(-2px);
+  }
+  &:active {
+    transform: translateY(0) scale(0.97);
+  }
+}
+
+/* Barrido de brillo mientras carga */
+@utility skeleton-shimmer {
+  background-image: linear-gradient(
+    100deg,
+    color-mix(in oklab, var(--color-primary) 8%, transparent) 30%,
+    color-mix(in oklab, var(--palette-rosa) 28%, transparent) 50%,
+    color-mix(in oklab, var(--color-primary) 8%, transparent) 70%
+  );
+  background-size: 250% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+/* Transición entre páginas (View Transitions): sale con fundido, entra subiendo */
+@keyframes vt-out {
+  to {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.995);
+  }
+}
+
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.995);
+  }
+}
+
+::view-transition-old(root) {
+  animation: vt-out 0.18s ease-in both;
+}
+
+::view-transition-new(root) {
+  animation: vt-in 0.38s var(--ease-smooth) both;
+}
+
+/* Quien prefiere menos movimiento no ve animaciones */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
 }

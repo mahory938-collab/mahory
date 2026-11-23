@@ -90,7 +90,7 @@ function DashboardPage() {
     >
       <div className="space-y-5">
         {/* Acciones rápidas */}
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Button
             asChild
             className="h-14 justify-start gap-3 rounded-xl text-base font-semibold shadow-glow"
@@ -106,7 +106,7 @@ function DashboardPage() {
         </div>
 
         {/* Lo más importante de hoy */}
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="stagger grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <KpiCard
             label="Vendido hoy"
             value={formatCurrency(data?.todayTotal)}
@@ -121,6 +121,7 @@ function DashboardPage() {
             hint={FEATURES.caja ? "Gastos del día más egresos de caja" : "Gastos registrados hoy"}
             icon={ArrowDownCircle}
             loading={isLoading}
+            tone="pink"
           />
           <KpiCard
             label="Balance de hoy"
@@ -128,6 +129,7 @@ function DashboardPage() {
             hint="Ventas menos gastos. No descuenta lo que costó la mercancía."
             icon={Banknote}
             loading={isLoading}
+            tone="sun"
           />
           <KpiCard
             label="Productos disponibles"
@@ -135,6 +137,7 @@ function DashboardPage() {
             hint={`${formatNumber(data?.outOfStock)} agotados`}
             icon={Boxes}
             loading={isLoading}
+            tone="mint"
           />
         </div>
 
@@ -326,6 +329,7 @@ function DashboardPage() {
                 hint={`${formatNumber(data?.monthCount)} ventas este mes`}
                 icon={TrendingUp}
                 loading={isLoading}
+                tone="sky"
               />
               <KpiCard
                 label="Ganancia del mes"
@@ -333,6 +337,7 @@ function DashboardPage() {
                 hint="Ventas menos lo que costó la mercancía. No descuenta gastos."
                 icon={Banknote}
                 loading={isLoading}
+                tone="mint"
               />
               <KpiCard
                 label="Venta promedio"
@@ -340,6 +345,7 @@ function DashboardPage() {
                 hint="Lo que deja cada venta en promedio este mes"
                 icon={ArrowUpRight}
                 loading={isLoading}
+                tone="pink"
               />
             </div>
 
@@ -478,25 +484,22 @@ function KpiCard({
   hint: string;
   icon: typeof Receipt;
   loading: boolean;
-  tone?: "primary";
+  tone?: "primary" | "pink" | "sky" | "sun" | "mint";
 }) {
+  const chip = {
+    primary: "bg-gradient-primary text-primary-foreground shadow-glow",
+    pink: "bg-primary-soft text-primary",
+    sky: "bg-primary-soft text-primary",
+    sun: "bg-primary-soft text-primary",
+    mint: "bg-primary-soft text-primary",
+  }[tone ?? "primary"];
   return (
-    <Card className="overflow-hidden rounded-2xl shadow-soft transition-shadow hover:shadow-card">
+    <Card className="pressable overflow-hidden rounded-2xl shadow-soft hover:shadow-card">
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-3">
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <div
-            className={
-              tone === "primary"
-                ? "grid size-9 place-items-center rounded-xl bg-gradient-brand"
-                : "grid size-9 place-items-center rounded-xl bg-primary-soft"
-            }
-          >
-            <Icon
-              className={
-                tone === "primary" ? "size-4 text-primary-foreground" : "size-4 text-primary"
-              }
-            />
+          <p className="text-sm font-medium text-muted-foreground">{label}</p>
+          <div className={`grid size-10 place-items-center rounded-xl ${chip}`}>
+            <Icon className="size-5" />
           </div>
         </div>
         {loading ? (
@@ -523,10 +526,10 @@ function QuickAction({
     <Button
       asChild
       variant="outline"
-      className="h-14 justify-start gap-3 rounded-xl text-sm font-medium"
+      className="pressable h-14 justify-start gap-3 rounded-2xl text-sm font-medium"
     >
       <Link to={to}>
-        <span className="grid size-8 place-items-center rounded-lg bg-primary-soft">
+        <span className="grid size-9 place-items-center rounded-xl bg-primary-soft">
           <Icon className="size-4 text-primary" />
         </span>
         {label}

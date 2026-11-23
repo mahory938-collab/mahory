@@ -40,11 +40,13 @@ export function AppShell({ title, description, actions, children, flush }: AppSh
       <div className="flex min-h-screen w-full bg-background">
         <AppSidebar />
         <SidebarInset className="flex min-w-0 flex-1 flex-col bg-background">
-          <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b bg-card/80 px-4 backdrop-blur-xl">
+          <header className="glass sticky top-0 z-30 flex h-16 items-center gap-3 border-b px-4">
             <SidebarTrigger className="size-9 rounded-lg" />
             <Separator orientation="vertical" className="h-6" />
             <div className="min-w-0 flex-1">
-              <h1 className="truncate font-display text-lg font-semibold leading-tight">{title}</h1>
+              <h1 className="truncate font-display text-xl font-semibold leading-tight text-primary">
+                {title}
+              </h1>
               {description && (
                 <p className="truncate text-xs text-muted-foreground">{description}</p>
               )}
@@ -83,7 +85,9 @@ export function AppShell({ title, description, actions, children, flush }: AppSh
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>
-                    <p className="truncate text-sm font-medium">{profile?.full_name || "Usuario"}</p>
+                    <p className="truncate text-sm font-medium">
+                      {profile?.full_name || "Usuario"}
+                    </p>
                     <p className="truncate text-xs font-normal text-muted-foreground">
                       {role ? ROLE_LABELS[role] : "Sin rol"}
                     </p>
@@ -107,7 +111,12 @@ export function AppShell({ title, description, actions, children, flush }: AppSh
             </div>
           </header>
 
-          <main className={cn("min-h-0 min-w-0 flex-1", flush ? "overflow-hidden" : "p-4 md:p-6")}>
+          <main
+            className={cn(
+              "animate-fade-up min-h-0 min-w-0 flex-1",
+              flush ? "overflow-hidden" : "p-4 md:p-6",
+            )}
+          >
             {children}
           </main>
         </SidebarInset>

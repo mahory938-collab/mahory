@@ -14,13 +14,13 @@ import {
   Search,
   ShoppingCart,
   Trash2,
+  Wallet,
   X,
 } from "lucide-react";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/layout/app-shell";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -706,18 +706,22 @@ function PosPage() {
           </div>
 
           {FEATURES.caja && !cashLoading && !activeCashSession && (
-            <Alert variant="destructive" className="mx-3 mt-3 flex items-center gap-3 rounded-xl">
-              <AlertDescription className="flex flex-1 items-center justify-between gap-3 pl-0">
-                <span>Debe abrir caja para poder registrar ventas.</span>
-                <Button asChild size="sm" variant="outline" className="h-8 shrink-0 rounded-lg">
-                  <Link to="/caja">Abrir caja</Link>
-                </Button>
-              </AlertDescription>
-            </Alert>
+            <div
+              role="alert"
+              className="mx-3 mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-xl border border-warning/40 bg-warning/10 px-3.5 py-2.5 text-sm"
+            >
+              <span className="flex min-w-0 items-center gap-2 text-foreground">
+                <Wallet className="size-4 shrink-0 text-warning" />
+                Abra la caja para poder registrar ventas.
+              </span>
+              <Button asChild size="sm" className="h-8 shrink-0 rounded-lg">
+                <Link to="/caja">Abrir caja</Link>
+              </Button>
+            </div>
           )}
 
           <ScrollArea className="flex-1">
-            <div className="grid grid-cols-2 gap-3 p-4 max-lg:pb-28 md:grid-cols-3 xl:grid-cols-4">
+            <div className="stagger grid grid-cols-2 gap-3 p-4 max-lg:pb-28 md:grid-cols-3 xl:grid-cols-4">
               {isLoading &&
                 [0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
                   <Skeleton key={i} className="h-32 rounded-2xl" />
@@ -873,7 +877,7 @@ function PosPage() {
                 </p>
               )}
               {cart.lines.map((line) => (
-                <Card key={line.key} className="rounded-xl shadow-none">
+                <Card key={line.key} className="animate-pop-bubble rounded-2xl shadow-none">
                   <CardContent className="p-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
@@ -1043,7 +1047,7 @@ function PosPage() {
             <>
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
-                  <CheckCircle2 className="size-5 text-success" />
+                  <CheckCircle2 className="animate-pop-bubble size-5 text-success" />
                   Venta completada
                 </DialogTitle>
               </DialogHeader>
@@ -1320,7 +1324,7 @@ function ProductCard({
       onClick={blocked ? undefined : onClick}
       className={cn(
         "relative flex h-40 flex-col overflow-hidden rounded-2xl border bg-card text-left shadow-soft transition-all",
-        "hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-card active:scale-[0.98]",
+        "duration-300 ease-[var(--ease-smooth)] hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-bubble active:scale-[0.98]",
         blocked &&
           "cursor-not-allowed opacity-60 hover:translate-y-0 hover:border-border hover:shadow-soft active:scale-100",
       )}
@@ -1350,7 +1354,7 @@ function ProductCard({
           <span
             className={cn(
               "block truncate font-display text-base font-semibold",
-              noPrice ? "text-amber-600" : "text-primary",
+              noPrice ? "text-amber-600 dark:text-amber-400" : "text-primary",
             )}
           >
             {noPrice ? "Sin precio" : formatCurrency(product.price)}
@@ -1384,7 +1388,7 @@ function FolderCard({
       onClick={onToggle}
       className={cn(
         "relative flex h-40 flex-col overflow-hidden rounded-2xl border bg-card text-left shadow-soft transition-all",
-        "hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-card active:scale-[0.98]",
+        "duration-300 ease-[var(--ease-smooth)] hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-bubble active:scale-[0.98]",
         expanded && "border-primary/50 ring-2 ring-primary/30",
         totalStock <= 0 && "opacity-60",
       )}

@@ -209,7 +209,7 @@ function ConnectScreen({
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 overflow-x-hidden bg-background p-6">
       <div className="flex flex-col items-center gap-3 text-center">
-        <img src="/logo-mahory.png" alt="Mahory" className="size-20 rounded-full shadow-glow" />
+        <img src="/logo-mahory.png" alt="Mahory Kids" className="size-28 object-contain" />
         <h1 className="font-display text-2xl font-semibold">Conectar a una tienda</h1>
         <p className="text-sm text-muted-foreground">
           En el computador, abra el punto de venta y toque <strong>«Conectar celular»</strong>. Luego

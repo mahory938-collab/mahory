@@ -86,7 +86,7 @@ export function AppSidebar() {
         asChild
         isActive={isActive(item.url)}
         tooltip={item.title}
-        className="h-11 rounded-xl transition-all"
+        className="h-11 rounded-xl"
       >
         <Link to={item.url} className="flex items-center gap-3">
           <item.icon className="size-5 shrink-0" />
@@ -97,13 +97,16 @@ export function AppSidebar() {
   );
 
   return (
-    <Sidebar collapsible="icon" className="border-r">
+    <Sidebar
+      collapsible="icon"
+      className="border-r [&_[data-sidebar=sidebar]]:bg-[radial-gradient(120%_60%_at_0%_100%,color-mix(in_oklab,var(--palette-canela)_45%,transparent),transparent_60%),var(--sidebar)]"
+    >
       <SidebarHeader className="p-3">
         <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
           <img
             src="/logo-mahory.png"
             alt="Mahory"
-            className="size-10 shrink-0 rounded-full shadow-glow"
+            className="size-11 shrink-0 object-contain"
           />
           {!collapsed && (
             <div className="min-w-0">
