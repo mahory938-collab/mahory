@@ -60,21 +60,21 @@ export const createUserAccount = createServerFn({ method: "POST" })
 export const updateUserRoleAccount = createServerFn({ method: "POST" })
   .validator((data: unknown) => data as { accessToken: string; userId: string; role: AppRole })
   .handler(async ({ data }) => {
-    const { supabaseAdmin, caller, callerIsSuper } = await requireAdmin(data.accessToken);
+    const { supabaseAdmin, caller } = await requireAdmin(data.accessToken);
 
     if (!VALID_ROLES.includes(data.role)) throw new Error("Rol inválido");
     if (data.userId === caller.id) throw new Error("No puede cambiar su propio rol");
 
-    // Cualquier administrador puede asignar el rol de Super Administrador, pero quitárselo a
-    // quien ya lo tiene solo lo hace otro Super Administrador.
-    if (!callerIsSuper) {
-      const { data: targetRoles } = await supabaseAdmin
+    // Cualquier administrador puede cambiar cualquier rol, pero siempre debe quedar al menos
+    // un Super Administrador en el sistema.
+    if (data.role !== "super_admin") {
+      const { data: supers } = await supabaseAdmin
         .from("user_roles")
-        .select("role")
-        .eq("user_id", data.userId);
-      const targetIsSuper = (targetRoles ?? []).some((r) => r.role === "super_admin");
-      if (targetIsSuper && data.role !== "super_admin") {
-        throw new Error("Solo un Super Administrador puede quitarle ese rol a otro.");
+        .select("user_id")
+        .eq("role", "super_admin");
+      const targetIsSuper = (supers ?? []).some((r) => r.user_id === data.userId);
+      if (targetIsSuper && (supers ?? []).length <= 1) {
+        throw new Error("Debe quedar al menos un Super Administrador.");
       }
     }
 
@@ -120,8 +120,8 @@ export const deleteUserAccount = createServerFn({ method: "POST" })
 
 /**
  * Edita los datos de una cuenta: nombre, correo (con el que inicia sesión), teléfono y, solo si
- * se escribe, una contraseña nueva. Solo administradores; los datos de un Super Administrador
- * (incluida su contraseña) solo los cambia otro Super Administrador (o él mismo).
+ * se escribe, una contraseña nueva. Solo administradores (y super administradores); cualquiera
+ * de ellos puede editar a cualquier cuenta.
  */
 export const updateUserAccount = createServerFn({ method: "POST" })
   .validator(
@@ -136,7 +136,7 @@ export const updateUserAccount = createServerFn({ method: "POST" })
       },
   )
   .handler(async ({ data }) => {
-    const { supabaseAdmin, caller, callerIsSuper } = await requireAdmin(data.accessToken);
+    const { supabaseAdmin } = await requireAdmin(data.accessToken);
 
     const fullName = data.fullName.trim();
     const email = data.email.trim().toLowerCase();
@@ -148,15 +148,6 @@ export const updateUserAccount = createServerFn({ method: "POST" })
     if (phone.length > 30) throw new Error("El teléfono es demasiado largo.");
     if (password !== undefined && password.length < 6) {
       throw new Error("La contraseña debe tener al menos 6 caracteres");
-    }
-
-    const { data: targetRoles } = await supabaseAdmin
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", data.userId);
-    const targetIsSuper = (targetRoles ?? []).some((r) => r.role === "super_admin");
-    if (targetIsSuper && !callerIsSuper && data.userId !== caller.id) {
-      throw new Error("Solo un Super Administrador puede modificar a otro Super Administrador.");
     }
 
     const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(data.userId, {

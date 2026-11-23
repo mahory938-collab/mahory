@@ -60,8 +60,7 @@ export const Route = createFileRoute("/_authenticated/usuarios")({
 });
 
 function UsuariosPage() {
-  const { user, role: viewerRole } = useAuth();
-  const isViewerSuperAdmin = viewerRole === "super_admin";
+  const { user } = useAuth();
   const [createOpen, setCreateOpen] = useState(false);
   const [deleting, setDeleting] = useState<AppUser | null>(null);
   const [editing, setEditing] = useState<AppUser | null>(null);
@@ -126,12 +125,10 @@ function UsuariosPage() {
 
             {users?.map((account) => {
               const isSelf = account.id === user?.id;
-              const isFounder = account.role === "super_admin";
-              // A super admin can reassign anyone's role (except their own);
-              // a regular admin can't touch a super admin's role.
-              const canEditRole = !isSelf && (isViewerSuperAdmin || !isFounder);
-              // Los datos de un Super Administrador solo los cambia otro Super Administrador (o él mismo).
-              const canEditData = isSelf || isViewerSuperAdmin || !isFounder;
+              // Administradores y Super Administradores pueden editarse entre sí; solo se
+              // bloquea cambiar el propio rol o eliminarse a uno mismo.
+              const canEditRole = !isSelf;
+              const canEditData = true;
               return (
                 <TableRow key={account.id}>
                   <TableCell className="font-medium">{account.full_name || "—"}</TableCell>
@@ -229,11 +226,7 @@ function UsuariosPage() {
       <CreateUserDialog open={createOpen} onOpenChange={setCreateOpen} />
       <EditUserDialog
         user={editing}
-        canEditRole={
-          editing
-            ? editing.id !== user?.id && (isViewerSuperAdmin || editing.role !== "super_admin")
-            : false
-        }
+        canEditRole={editing ? editing.id !== user?.id : false}
         onClose={() => setEditing(null)}
       />
 

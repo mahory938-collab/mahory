@@ -165,7 +165,7 @@ function EditUserForm({
         </Select>
         {!canEditRole && (
           <p className="text-xs text-muted-foreground">
-            No puede cambiar este rol (es su propia cuenta o la de un Super Administrador).
+            No puede cambiar su propio rol.
           </p>
         )}
       </div>
