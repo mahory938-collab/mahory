@@ -86,6 +86,11 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             ? "Algo falló de nuestro lado. Intente de nuevo; si sigue igual, cierre sesión y vuelva a entrar."
             : "Estamos volviendo a cargar la pantalla."}
         </p>
+        {autoReloaded && error?.message && (
+          <p className="mt-3 break-words rounded-lg bg-muted p-2 text-left text-xs text-muted-foreground">
+            {error.message}
+          </p>
+        )}
         {autoReloaded && (
           <div className="mt-6 flex flex-wrap justify-center gap-2">
             <button
@@ -194,7 +199,18 @@ function RootComponent() {
       window.location.reload();
     };
     window.addEventListener("vite:preloadError", handlePreloadError);
-    return () => window.removeEventListener("vite:preloadError", handlePreloadError);
+    // Si la página cargó bien, se permite de nuevo la recarga automática ante la próxima versión.
+    const clearFlag = setTimeout(() => {
+      try {
+        sessionStorage.removeItem(RELOAD_KEY);
+      } catch {
+        // almacenamiento no disponible
+      }
+    }, 20000);
+    return () => {
+      clearTimeout(clearFlag);
+      window.removeEventListener("vite:preloadError", handlePreloadError);
+    };
   }, []);
 
   return (

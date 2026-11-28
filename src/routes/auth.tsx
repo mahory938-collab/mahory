@@ -76,7 +76,9 @@ function AuthPage() {
         // Al iniciar sesión se limpia todo lo viejo (caché del navegador, restos guardados y
         // datos en memoria de la sesión anterior), conservando la sesión nueva.
         runCleanupNow();
-        queryClient.getQueryCache().clear();
+        // Solo los datos de pantallas; las consultas de la sesión se dejan para que la app siga
+        // escuchándolas (borrarlas dejaba a la app mirando una sesión vieja).
+        queryClient.removeQueries({ predicate: (query) => query.queryKey[0] !== "auth" });
 
         // Se deja lista la cuenta (nombre y rol) ANTES de entrar, para que el menú y el nombre
         // aparezcan desde el primer momento y no haya que recargar.
