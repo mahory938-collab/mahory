@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { accountQueryKey, fetchAccount } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { runCleanupNow } from "@/lib/startup-cleanup";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -71,6 +72,11 @@ function AuthPage() {
           password: values.password,
         });
         if (error) throw error;
+
+        // Al iniciar sesión se limpia todo lo viejo (caché del navegador, restos guardados y
+        // datos en memoria de la sesión anterior), conservando la sesión nueva.
+        runCleanupNow();
+        queryClient.getQueryCache().clear();
 
         // Se deja lista la cuenta (nombre y rol) ANTES de entrar, para que el menú y el nombre
         // aparezcan desde el primer momento y no haya que recargar.

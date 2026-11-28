@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/use-auth";
 import { resetLocalSession } from "@/lib/session-reset";
+import { scheduleStartupCleanup } from "@/lib/startup-cleanup";
 
 function NotFoundComponent() {
   return (
@@ -179,6 +180,11 @@ function RootComponent() {
   // redeployed 404s with "Failed to fetch dynamically imported module".
   // Reload once to pick up the current build instead of showing the error
   // screen; the session flag stops a genuinely broken deploy from looping.
+  // Al abrir la app: limpieza silenciosa de caché y restos viejos (sin cerrar la sesión).
+  useEffect(() => {
+    scheduleStartupCleanup();
+  }, []);
+
   useEffect(() => {
     const RELOAD_KEY = "bp-pos-chunk-reload";
     const handlePreloadError = (event: Event) => {
