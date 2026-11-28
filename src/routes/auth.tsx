@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { accountQueryKey, fetchAccount } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/auth")({
@@ -44,6 +45,7 @@ type Mode = "signin" | "signup";
 
 function AuthPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [mode, setMode] = useState<Mode>("signin");
   const [emailSent, setEmailSent] = useState(false);
 
@@ -64,11 +66,27 @@ function AuthPage() {
         throw new Error("Ingrese su nombre completo");
       }
       if (mode === "signin") {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email: values.email,
           password: values.password,
         });
         if (error) throw error;
+
+        // Se deja lista la cuenta (nombre y rol) ANTES de entrar, para que el menú y el nombre
+        // aparezcan desde el primer momento y no haya que recargar.
+        const userId = data.session?.user.id ?? null;
+        queryClient.setQueryData(["auth", "session"], data.session ?? null);
+        if (userId) {
+          try {
+            await queryClient.fetchQuery({
+              queryKey: accountQueryKey(userId),
+              queryFn: () => fetchAccount(userId),
+              staleTime: 60_000,
+            });
+          } catch {
+            // si falla aquí, la app lo vuelve a intentar sola al entrar
+          }
+        }
         return { signedIn: true };
       }
       const { data, error } = await supabase.auth.signUp({

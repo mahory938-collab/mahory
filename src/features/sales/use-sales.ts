@@ -60,9 +60,10 @@ export function useSalesList(filters: SalesFilters) {
       const term = filters.search.trim();
       if (term) {
         const asNumber = Number(term);
-        query = Number.isFinite(asNumber) && term !== ""
-          ? query.or(`number.eq.${asNumber},customer_name.ilike.%${term}%`)
-          : query.ilike("customer_name", `%${term}%`);
+        query =
+          Number.isFinite(asNumber) && term !== ""
+            ? query.or(`number.eq.${asNumber},customer_name.ilike.%${term}%`)
+            : query.ilike("customer_name", `%${term}%`);
       }
 
       const { data, error } = await query;
@@ -212,45 +213,43 @@ export function useVoidSale() {
         await adjustCustomerBalance(saleRes.data.customer_id, -creditoAmount);
       }
 
-      await Promise.all(
-        (items ?? [])
-          .filter((item) => item.product_id)
-          .map(async (item) => {
-            const remainingQuantity =
-              Number(item.quantity) - (alreadyReturnedMap.get(item.product_id as string) ?? 0);
-            if (remainingQuantity <= 0) return;
+      // Uno por uno (no en paralelo): si el mismo producto aparece dos veces, cada paso lee el
+      // stock que dejó el anterior y no se pierde ninguna cantidad.
+      for (const item of (items ?? []).filter((item) => item.product_id)) {
+        const remainingQuantity =
+          Number(item.quantity) - (alreadyReturnedMap.get(item.product_id as string) ?? 0);
+        if (remainingQuantity <= 0) continue;
 
-            const { data: product, error: productError } = await supabase
-              .from("products")
-              .select("stock")
-              .eq("id", item.product_id as string)
-              .single();
-            if (productError) throw productError;
+        const { data: product, error: productError } = await supabase
+          .from("products")
+          .select("stock")
+          .eq("id", item.product_id as string)
+          .single();
+        if (productError) throw productError;
 
-            const stockBefore = Number(product.stock);
-            const quantity = remainingQuantity;
-            const stockAfter = stockBefore + quantity;
+        const stockBefore = Number(product.stock);
+        const quantity = remainingQuantity;
+        const stockAfter = stockBefore + quantity;
 
-            const { error: updateError } = await supabase
-              .from("products")
-              .update({ stock: stockAfter })
-              .eq("id", item.product_id as string);
-            if (updateError) throw updateError;
+        const { error: updateError } = await supabase
+          .from("products")
+          .update({ stock: stockAfter })
+          .eq("id", item.product_id as string);
+        if (updateError) throw updateError;
 
-            const { error: moveError } = await supabase.from("inventory_movements").insert({
-              product_id: item.product_id,
-              type: "devolucion",
-              quantity,
-              stock_before: stockBefore,
-              stock_after: stockAfter,
-              reason: "Anulación de venta",
-              reference_type: "sale",
-              reference_id: saleId,
-              created_by: user?.id ?? null,
-            });
-            if (moveError) throw moveError;
-          }),
-      );
+        const { error: moveError } = await supabase.from("inventory_movements").insert({
+          product_id: item.product_id,
+          type: "devolucion",
+          quantity,
+          stock_before: stockBefore,
+          stock_after: stockAfter,
+          reason: "Anulación de venta",
+          reference_type: "sale",
+          reference_id: saleId,
+          created_by: user?.id ?? null,
+        });
+        if (moveError) throw moveError;
+      }
 
       const { error: voidError } = await supabase
         .from("sales")
@@ -385,39 +384,39 @@ export function useReturnItems() {
         .single();
       if (saleError) throw saleError;
 
-      await Promise.all(
-        activeLines.map(async (line) => {
-          const { data: product, error: productError } = await supabase
-            .from("products")
-            .select("stock")
-            .eq("id", line.productId)
-            .single();
-          if (productError) throw productError;
+      // Uno por uno (no en paralelo): si el mismo producto aparece dos veces, cada paso lee el
+      // stock que dejó el anterior y no se pierde ninguna cantidad.
+      for (const line of activeLines) {
+        const { data: product, error: productError } = await supabase
+          .from("products")
+          .select("stock")
+          .eq("id", line.productId)
+          .single();
+        if (productError) throw productError;
 
-          const stockBefore = Number(product.stock);
-          const stockAfter = stockBefore + line.quantity;
+        const stockBefore = Number(product.stock);
+        const stockAfter = stockBefore + line.quantity;
 
-          const { error: updateError } = await supabase
-            .from("products")
-            .update({ stock: stockAfter })
-            .eq("id", line.productId);
-          if (updateError) throw updateError;
+        const { error: updateError } = await supabase
+          .from("products")
+          .update({ stock: stockAfter })
+          .eq("id", line.productId);
+        if (updateError) throw updateError;
 
-          const { error: moveError } = await supabase.from("inventory_movements").insert({
-            product_id: line.productId,
-            type: "devolucion",
-            quantity: line.quantity,
-            stock_before: stockBefore,
-            stock_after: stockAfter,
-            unit_cost: line.unitCost,
-            reason: "Devolución parcial",
-            reference_type: "sale",
-            reference_id: input.saleId,
-            created_by: user?.id ?? null,
-          });
-          if (moveError) throw moveError;
-        }),
-      );
+        const { error: moveError } = await supabase.from("inventory_movements").insert({
+          product_id: line.productId,
+          type: "devolucion",
+          quantity: line.quantity,
+          stock_before: stockBefore,
+          stock_after: stockAfter,
+          unit_cost: line.unitCost,
+          reason: "Devolución parcial",
+          reference_type: "sale",
+          reference_id: input.saleId,
+          created_by: user?.id ?? null,
+        });
+        if (moveError) throw moveError;
+      }
 
       const returnAmount = Math.round(activeLines.reduce((sum, l) => sum + l.amount, 0));
       if (sale.status === "credito" && sale.customer_id && returnAmount > 0) {

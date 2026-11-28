@@ -46,8 +46,7 @@ export function usePurchasesList(filters: { status: PurchaseStatus | "all"; sear
       if (term) {
         mapped = mapped.filter(
           (p) =>
-            String(p.number).includes(term) ||
-            (p.supplier_name ?? "").toLowerCase().includes(term),
+            String(p.number).includes(term) || (p.supplier_name ?? "").toLowerCase().includes(term),
         );
       }
 
@@ -206,39 +205,39 @@ export function useReceivePurchase() {
         .eq("purchase_id", purchaseId);
       if (itemsError) throw itemsError;
 
-      await Promise.all(
-        (items ?? []).map(async (item) => {
-          const { data: product, error: productError } = await supabase
-            .from("products")
-            .select("stock")
-            .eq("id", item.product_id)
-            .single();
-          if (productError) throw productError;
+      // Uno por uno (no en paralelo): si el mismo producto aparece dos veces, cada paso lee el
+      // stock que dejó el anterior y no se pierde ninguna cantidad.
+      for (const item of items ?? []) {
+        const { data: product, error: productError } = await supabase
+          .from("products")
+          .select("stock")
+          .eq("id", item.product_id)
+          .single();
+        if (productError) throw productError;
 
-          const stockBefore = Number(product.stock);
-          const quantity = Number(item.quantity);
-          const stockAfter = stockBefore + quantity;
+        const stockBefore = Number(product.stock);
+        const quantity = Number(item.quantity);
+        const stockAfter = stockBefore + quantity;
 
-          const { error: updateError } = await supabase
-            .from("products")
-            .update({ stock: stockAfter, cost: item.unit_cost })
-            .eq("id", item.product_id);
-          if (updateError) throw updateError;
+        const { error: updateError } = await supabase
+          .from("products")
+          .update({ stock: stockAfter, cost: item.unit_cost })
+          .eq("id", item.product_id);
+        if (updateError) throw updateError;
 
-          const { error: moveError } = await supabase.from("inventory_movements").insert({
-            product_id: item.product_id,
-            type: "compra",
-            quantity,
-            stock_before: stockBefore,
-            stock_after: stockAfter,
-            unit_cost: item.unit_cost,
-            reference_type: "purchase",
-            reference_id: purchaseId,
-            created_by: user?.id ?? null,
-          });
-          if (moveError) throw moveError;
-        }),
-      );
+        const { error: moveError } = await supabase.from("inventory_movements").insert({
+          product_id: item.product_id,
+          type: "compra",
+          quantity,
+          stock_before: stockBefore,
+          stock_after: stockAfter,
+          unit_cost: item.unit_cost,
+          reference_type: "purchase",
+          reference_id: purchaseId,
+          created_by: user?.id ?? null,
+        });
+        if (moveError) throw moveError;
+      }
 
       const { error: receiveError } = await supabase
         .from("purchases")

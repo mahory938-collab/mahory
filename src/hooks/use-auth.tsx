@@ -30,12 +30,35 @@ type AuthState = {
 
 const AuthContext = createContext<AuthState | null>(null);
 
+/** Ninguna carga de la cuenta puede quedarse colgada: si tarda demasiado, falla y se reintenta. */
+function withTimeout<T>(promise: PromiseLike<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("La conexión tardó demasiado")), ms);
+    Promise.resolve(promise).then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error: unknown) => {
+        clearTimeout(timer);
+        reject(error instanceof Error ? error : new Error(String(error)));
+      },
+    );
+  });
+}
+
 async function fetchSession() {
-  const { data } = await supabase.auth.getSession();
+  const { data } = await withTimeout(supabase.auth.getSession(), 10_000);
   return data.session ?? null;
 }
 
-async function fetchAccount(userId: string) {
+export const accountQueryKey = (userId: string | null) => ["auth", "account", userId] as const;
+
+export async function fetchAccount(userId: string) {
+  return withTimeout(loadAccount(userId), 12_000);
+}
+
+async function loadAccount(userId: string) {
   const [profileRes, rolesRes, roleRpcRes] = await Promise.all([
     supabase
       .from("profiles")
@@ -81,17 +104,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const userId = sessionQuery.data?.user?.id ?? null;
 
   const accountQuery = useQuery({
-    queryKey: ["auth", "account", userId],
+    queryKey: accountQueryKey(userId),
     queryFn: () => fetchAccount(userId as string),
     enabled: Boolean(userId),
     staleTime: 60_000,
+    retry: 4,
+    retryDelay: (attempt) => Math.min(800 * 2 ** attempt, 6000),
   });
 
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((event) => {
-      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
-      queryClient.invalidateQueries({ queryKey: ["auth"] });
-      if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
+    // Supabase avisa cada cambio de sesión. La sesión nueva viene en el aviso: se guarda tal cual,
+    // sin volver a pedirla (pedirla dentro del aviso puede dejar la app esperando para siempre).
+    // Lo demás se recarga en el siguiente turno, fuera del aviso.
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      const previous = queryClient.getQueryData<Session | null>(["auth", "session"]);
+      queryClient.setQueryData(["auth", "session"], session ?? null);
+
+      const previousId = previous?.user?.id ?? null;
+      const nextId = session?.user?.id ?? null;
+      setTimeout(() => {
+        if (event === "SIGNED_OUT") {
+          queryClient.removeQueries({ queryKey: ["auth", "account"] });
+          return;
+        }
+        if (previousId !== nextId) {
+          // Entró otra persona: todo lo que hay en pantalla es de la anterior.
+          void queryClient.invalidateQueries();
+        } else if (event === "USER_UPDATED") {
+          void queryClient.invalidateQueries({ queryKey: ["auth", "account"] });
+        }
+      }, 0);
     });
     return () => data.subscription.unsubscribe();
   }, [queryClient]);
@@ -99,7 +141,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AuthState>(() => {
     const role = accountQuery.data?.role ?? null;
     return {
-      isLoading: sessionQuery.isLoading || (Boolean(userId) && accountQuery.isLoading),
+      isLoading:
+        sessionQuery.isLoading ||
+        (Boolean(userId) &&
+          (accountQuery.isPending || (!accountQuery.data && accountQuery.isFetching))),
       session: sessionQuery.data ?? null,
       user: sessionQuery.data?.user ?? null,
       profile: accountQuery.data?.profile ?? null,
@@ -112,7 +157,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sessionQuery.data,
     sessionQuery.isLoading,
     accountQuery.data,
-    accountQuery.isLoading,
+    accountQuery.isPending,
+    accountQuery.isFetching,
     accountQuery.error,
     userId,
   ]);

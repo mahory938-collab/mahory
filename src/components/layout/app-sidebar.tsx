@@ -30,6 +30,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
 import { FEATURES } from "@/lib/plan";
 import { ROLE_LABELS, type Permission } from "@/lib/permissions";
@@ -72,7 +73,9 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
-  const { can, profile, role } = useAuth();
+  const { can, profile, role, isLoading: authLoading, user } = useAuth();
+  // Sin sesión en memoria todavía (justo al entrar): se muestra cargando, nunca un menú vacío.
+  const isLoading = authLoading || !user;
   const [moreOpen, setMoreOpen] = useState(false);
 
   const isActive = (url: string) => pathname === url || pathname.startsWith(`${url}/`);
@@ -105,11 +108,7 @@ export function AppSidebar() {
     >
       <SidebarHeader className="p-3">
         <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
-          <img
-            src="/logo-mahory.png"
-            alt="Mahory"
-            className="size-11 shrink-0 object-contain"
-          />
+          <img src="/logo-mahory.png" alt="Mahory" className="size-11 shrink-0 object-contain" />
           {!collapsed && (
             <div className="min-w-0">
               <p className="truncate font-serif text-base font-semibold uppercase tracking-[0.25em]">
@@ -124,7 +123,15 @@ export function AppSidebar() {
       <SidebarContent className="scrollbar-slim">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>{mainItems.map(renderItem)}</SidebarMenu>
+            {isLoading ? (
+              <div className="space-y-2 px-1" aria-label="Cargando menú">
+                {[0, 1, 2, 3, 4, 5].map((i) => (
+                  <Skeleton key={i} className="h-10 rounded-xl" />
+                ))}
+              </div>
+            ) : (
+              <SidebarMenu>{mainItems.map(renderItem)}</SidebarMenu>
+            )}
           </SidebarGroupContent>
         </SidebarGroup>
 
@@ -155,12 +162,21 @@ export function AppSidebar() {
       <SidebarFooter className="p-3">
         {!collapsed && (
           <div className="rounded-xl border bg-surface p-3">
-            <p className="truncate text-sm font-medium text-foreground">
-              {profile?.full_name || "Usuario"}
-            </p>
-            <p className="truncate text-xs text-muted-foreground">
-              {role ? ROLE_LABELS[role] : "Sin rol"}
-            </p>
+            {isLoading ? (
+              <div className="space-y-1.5">
+                <Skeleton className="h-4 w-28 rounded-md" />
+                <Skeleton className="h-3 w-20 rounded-md" />
+              </div>
+            ) : (
+              <>
+                <p className="truncate text-sm font-medium text-foreground">
+                  {profile?.full_name || "Usuario"}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {role ? ROLE_LABELS[role] : "Sin rol"}
+                </p>
+              </>
+            )}
           </div>
         )}
       </SidebarFooter>

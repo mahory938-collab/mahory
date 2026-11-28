@@ -31,7 +31,10 @@ export function ReturnItemsDialog({
     if (saleId) setQuantities({});
   }, [saleId]);
 
-  const returnable = (items ?? []).filter((item) => item.quantity - item.alreadyReturned > 0);
+  // Un producto que ya fue eliminado del catálogo no se puede devolver al inventario.
+  const returnable = (items ?? []).filter(
+    (item) => item.product_id && item.quantity - item.alreadyReturned > 0,
+  );
 
   const setQty = (itemId: string, value: number, max: number) => {
     setQuantities((current) => ({ ...current, [itemId]: Math.max(0, Math.min(max, value)) }));
@@ -65,7 +68,8 @@ export function ReturnItemsDialog({
           toast.success(`Devolución registrada · ${formatCurrency(returnAmount)}`);
           onOpenChange(false);
         },
-        onError: (error: Error) => toast.error(error.message || "No se pudo registrar la devolución"),
+        onError: (error: Error) =>
+          toast.error(error.message || "No se pudo registrar la devolución"),
       },
     );
   };

@@ -35,10 +35,17 @@ type AppShellProps = {
 
 export function AppShell({ title, description, actions, children, flush }: AppShellProps) {
   const { profile, role, user, isLoading, accountError } = useAuth();
+  const queryClient = useQueryClient();
   const { theme, toggle } = useTheme();
   const navigate = useNavigate();
   const signOut = useSignOut(() => navigate({ to: "/auth", replace: true }));
   const pathname = useRouterState({ select: (r) => r.location.pathname });
+
+  // Esta pantalla solo se abre con sesión iniciada (lo comprueba la ruta). Si aun así la app
+  // todavía no tiene la sesión en memoria, se vuelve a leer en vez de mostrar un menú vacío.
+  useEffect(() => {
+    if (!isLoading && !user) void queryClient.invalidateQueries({ queryKey: ["auth", "session"] });
+  }, [isLoading, user, queryClient]);
 
   useEffect(() => {
     if (role) {
@@ -89,7 +96,11 @@ export function AppShell({ title, description, actions, children, flush }: AppSh
               {actions}
               <GlobalSearch
                 trigger={
-                  <Button variant="outline" size="icon" className="size-9 rounded-lg">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="hidden size-9 rounded-lg sm:inline-flex"
+                  >
                     <Search className="size-4" />
                     <span className="sr-only">Buscar</span>
                   </Button>
@@ -98,7 +109,7 @@ export function AppShell({ title, description, actions, children, flush }: AppSh
               <Button
                 variant="outline"
                 size="icon"
-                className="size-9 rounded-lg"
+                className="hidden size-9 rounded-lg sm:inline-flex"
                 onClick={toggle}
                 aria-label="Cambiar tema"
               >
@@ -126,6 +137,9 @@ export function AppShell({ title, description, actions, children, flush }: AppSh
                     </p>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={toggle} className="sm:hidden">
+                    {theme === "dark" ? "Modo claro" : "Modo oscuro"}
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/manual">Manual de uso</Link>
                   </DropdownMenuItem>

@@ -111,7 +111,7 @@ function ReportesPage() {
       actions={
         <div className="flex items-center gap-2">
           <Select value={range} onValueChange={(v) => setRange(v as ReportRange)}>
-            <SelectTrigger className="h-9 w-40 rounded-lg">
+            <SelectTrigger className="h-9 w-32 rounded-lg sm:w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

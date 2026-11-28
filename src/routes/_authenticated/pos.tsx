@@ -425,29 +425,38 @@ function PosPage() {
       if (payError) throw payError;
 
       // Discount stock and leave a kardex trail for each line sold.
-      await Promise.all(
-        cart.lines.map(async (line) => {
-          const stockAfter = Math.max(0, line.stock - line.quantity);
-          const { error: stockError } = await supabase
-            .from("products")
-            .update({ stock: stockAfter })
-            .eq("id", line.productId);
-          if (stockError) throw stockError;
+      // Uno por uno (no en paralelo): si el mismo producto aparece dos veces, cada paso lee el
+      // stock que dejó el anterior y no se pierde ninguna cantidad.
+      for (const line of cart.lines) {
+        // El stock se lee en este momento, no el que había cuando se agregó al carrito: entre
+        // tanto pudo venderse en otro computador o en otra venta, y se pisaría ese cambio.
+        const { data: fresh, error: freshError } = await supabase
+          .from("products")
+          .select("stock")
+          .eq("id", line.productId)
+          .maybeSingle();
+        if (freshError) throw freshError;
+        const stockBefore = fresh ? Number(fresh.stock) : line.stock;
+        const stockAfter = Math.max(0, stockBefore - line.quantity);
+        const { error: stockError } = await supabase
+          .from("products")
+          .update({ stock: stockAfter })
+          .eq("id", line.productId);
+        if (stockError) throw stockError;
 
-          const { error: moveError } = await supabase.from("inventory_movements").insert({
-            product_id: line.productId,
-            type: "venta",
-            quantity: line.quantity,
-            stock_before: line.stock,
-            stock_after: stockAfter,
-            unit_cost: line.unitCost,
-            reference_type: "sale",
-            reference_id: sale.id,
-            created_by: authUser.id,
-          });
-          if (moveError) throw moveError;
-        }),
-      );
+        const { error: moveError } = await supabase.from("inventory_movements").insert({
+          product_id: line.productId,
+          type: "venta",
+          quantity: line.quantity,
+          stock_before: stockBefore,
+          stock_after: stockAfter,
+          unit_cost: line.unitCost,
+          reference_type: "sale",
+          reference_id: sale.id,
+          created_by: authUser.id,
+        });
+        if (moveError) throw moveError;
+      }
 
       if (creditoAmount > 0 && customer.id) {
         await adjustCustomerBalance(customer.id, creditoAmount);
@@ -985,23 +994,27 @@ function PosPage() {
             </div>
           </ScrollArea>
 
-          <div className="space-y-2 border-t bg-card p-4">
-            <Row label="Subtotal" value={formatCurrency(cart.totals.subtotal)} />
-            <Row label="IVA" value={formatCurrency(cart.totals.taxTotal)} />
+          <div className="space-y-1 border-t bg-card px-4 py-3">
+            <Row small label="Subtotal" value={formatCurrency(cart.totals.subtotal)} />
+            <Row small label="IVA" value={formatCurrency(cart.totals.taxTotal)} />
             {cart.totals.discountTotal > 0 && (
-              <Row label="Descuentos" value={`- ${formatCurrency(cart.totals.discountTotal)}`} />
+              <Row
+                small
+                label="Descuentos"
+                value={`- ${formatCurrency(cart.totals.discountTotal)}`}
+              />
             )}
             {cart.deliveryFee > 0 && (
-              <Row label="Domicilio" value={formatCurrency(cart.deliveryFee)} />
+              <Row small label="Domicilio" value={formatCurrency(cart.deliveryFee)} />
             )}
-            <div className="flex items-center justify-between pt-1">
-              <span className="font-display text-base font-semibold">Total</span>
-              <span className="font-display text-2xl font-bold text-primary">
+            <div className="flex items-center justify-between pt-0.5">
+              <span className="font-display text-sm font-semibold">Total</span>
+              <span className="font-display text-lg font-bold text-primary">
                 {formatCurrency(cart.totals.total)}
               </span>
             </div>
             <Button
-              className="h-14 w-full rounded-xl text-base font-semibold"
+              className="mt-1 h-11 w-full rounded-xl text-sm font-semibold"
               disabled={
                 cart.lines.length === 0 ||
                 authLoading ||
@@ -1443,9 +1456,9 @@ function FolderCard({
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value, small }: { label: string; value: string; small?: boolean }) {
   return (
-    <div className="flex items-center justify-between text-sm">
+    <div className={cn("flex items-center justify-between", small ? "text-xs" : "text-sm")}>
       <span className="text-muted-foreground">{label}</span>
       <span>{value}</span>
     </div>
